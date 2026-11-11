@@ -1,0 +1,52 @@
+# Gradle
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+# Kotlin Multiplatform
+.kotlin/
+**/build/
+**/out/
+
+# Android
+*.iml
+local.properties
+.idea/
+.DS_Store
+captures
+.externalNativeBuild
+.cxx
+
+# IntelliJ IDEA
+*.ipr
+*.iws
+.idea/
+
+# Xcode (iOS)
+*.xcodeproj/xcuserdata/
+*.xcodeproj/project.xcworkspace/xcuserdata/
+*.xcworkspace/xcuserdata/
+DerivedData/
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# macOS
+.DS_Store
+*.swp
+*~
+
+# Windows
+Thumbs.db
+Desktop.ini
+
+# APK files (optional - اگر آپ APK کو GitHub پر نہیں رکھنا چاہتے)
+*.apk
+*.aab
+
+# Sensitive files
+*.keystore
+*.jks
+secrets.properties
