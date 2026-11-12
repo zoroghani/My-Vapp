@@ -35,6 +35,7 @@ kotlin {
         }
         commonMain.dependencies {
             api(project(":sharedLogic"))
+            implementation(libs.coil.compose)
             implementation(libs.compose.runtime)
             implementation(libs.compose.foundation)
             implementation(libs.compose.material3)
