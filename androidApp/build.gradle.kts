@@ -12,10 +12,10 @@ kotlin {
 }
 dependencies {
     implementation(project(":sharedUI"))
-
     implementation(libs.androidx.activity.compose)
-
     implementation(libs.compose.uiToolingPreview)
+    implementation("androidx.media3:media3-exoplayer:1.3.1")
+    implementation("androidx.media3:media3-ui:1.3.1")
     debugImplementation(libs.compose.uiTooling)
 }
 
