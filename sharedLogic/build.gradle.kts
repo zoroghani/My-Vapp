@@ -34,6 +34,12 @@ kotlin {
         commonMain.dependencies {
             // put your Multiplatform dependencies here
         }
+
+        jvmMain dependencies {
+            implementation("org.jcodec:jcodec:0.2.5")
+            implementation("org.jcodec:jcodec-javase:0.2.5")
+        }
+
         commonTest.dependencies {
             implementation(libs.kotlin.test)
         }
