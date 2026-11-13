@@ -25,13 +25,17 @@ class VideoListScreen : Screen {
     override fun Content() {
         val navigator = LocalNavigator.currentOrThrow
         
+        // 1. فائل پکر لانچر (100% درست طریقہ)
         val picker = rememberFilePickerLauncher(
             type = PickerType.Video,
             title = "ویڈیو منتخب کریں"
         ) { file ->
-            // 👇 یہاں Null Check لگا دیا ہے تاکہ ایرر نہ آئے
-            if (file != null && file.path != null) {
-                navigator.push(VideoPlayerScreen(file.path!!, "آپ کی اپ لوڈ کردہ ویڈیو"))
+            if (file != null) {
+                // FileKit 0.8.8 میں path ہی صحیح URI/Path دیتا ہے جسے ExoPlayer چلا سکتا ہے
+                val videoPath = file.path
+                println("✅ منتخب شدہ ویڈیو کا پاتھ: $videoPath") // ڈیبگنگ کے لیے
+                
+                navigator.push(VideoPlayerScreen(videoPath, "آپ کی اپ لوڈ کردہ ویڈیو"))
             }
         }
 
@@ -39,15 +43,16 @@ class VideoListScreen : Screen {
             topBar = {
                 TopAppBar(
                     title = { Text("میری ویڈیو ایپ") },
-                    colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = Color.Transparent
-                    )
+                    colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
                 )
             },
-            containerColor = Color(0xFFE8EAF6), 
+            containerColor = Color(0xFFE8EAF6), // گلاس ایفیکٹ کے لیے پس منظر
             floatingActionButton = {
                 FloatingActionButton(
-                    onClick = { picker.launch() },
+                    onClick = { 
+                        println("🔵 اپ لوڈ بٹن دبایا گیا، پکر کھول رہا ہے...") // ڈیبگنگ
+                        picker.launch() 
+                    },
                     containerColor = Color.White.copy(alpha = 0.6f),
                     contentColor = Color(0xFF6200EE)
                 ) {
@@ -64,7 +69,8 @@ class VideoListScreen : Screen {
             ) {
                 items(dummyVideos) { video ->
                     VideoCard(video = video) {
-                       navigator.push(VideoPlayerScreen(video.videoUrl, video.title))
+                        // 2. بگ فکس: thumbnailUrl کی جگہ videoUrl بھیجیں تاکہ ویڈیو چلے
+                        navigator.push(VideoPlayerScreen(video.videoUrl, video.title))
                     }
                 }
             }
@@ -72,6 +78,7 @@ class VideoListScreen : Screen {
     }
 }
 
+// 3. گلاس اسٹائل ویڈیو کارڈ
 @Composable
 fun VideoCard(video: DummyVideo, onClick: () -> Unit) {
     Card(
@@ -95,15 +102,15 @@ fun VideoCard(video: DummyVideo, onClick: () -> Unit) {
             }
             Column(modifier = Modifier.padding(12.dp)) {
                 Text(
-                    text = video.title, 
-                    style = MaterialTheme.typography.titleMedium, 
+                    text = video.title,
+                    style = MaterialTheme.typography.titleMedium,
                     maxLines = 2,
                     color = Color(0xFF1F2937)
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = video.channel, 
-                    style = MaterialTheme.typography.bodyMedium, 
+                    text = video.channel,
+                    style = MaterialTheme.typography.bodyMedium,
                     color = Color(0xFF4B5563)
                 )
             }
