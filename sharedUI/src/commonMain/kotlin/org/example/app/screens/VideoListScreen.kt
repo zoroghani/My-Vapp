@@ -25,17 +25,20 @@ class VideoListScreen : Screen {
     override fun Content() {
         val navigator = LocalNavigator.currentOrThrow
         
-        // 1. فائل پکر لانچر (100% درست طریقہ)
+        // 1. فائل پکر لانچر (Null Safety کے ساتھ 100% درست)
         val picker = rememberFilePickerLauncher(
             type = PickerType.Video,
             title = "ویڈیو منتخب کریں"
         ) { file ->
-            if (file != null) {
-                // FileKit 0.8.8 میں path ہی صحیح URI/Path دیتا ہے جسے ExoPlayer چلا سکتا ہے
-                val videoPath = file.path
-                println("✅ منتخب شدہ ویڈیو کا پاتھ: $videoPath") // ڈیبگنگ کے لیے
-                
+            // file?.path استعمال کریں تاکہ null کا ایرر نہ آئے
+            val videoPath = file?.path
+            
+            if (videoPath != null) {
+                println("✅ منتخب شدہ ویڈیو کا پاتھ: $videoPath")
+                // اب videoPath یقینی طور پر String ہے، null نہیں
                 navigator.push(VideoPlayerScreen(videoPath, "آپ کی اپ لوڈ کردہ ویڈیو"))
+            } else {
+                println("⚠️ کوئی فائل منتخب نہیں کی گیا یا پاتھ null ہے")
             }
         }
 
@@ -50,7 +53,7 @@ class VideoListScreen : Screen {
             floatingActionButton = {
                 FloatingActionButton(
                     onClick = { 
-                        println("🔵 اپ لوڈ بٹن دبایا گیا، پکر کھول رہا ہے...") // ڈیبگنگ
+                        println("🔵 اپ لوڈ بٹن دبایا گیا، پکر کھول رہا ہے...")
                         picker.launch() 
                     },
                     containerColor = Color.White.copy(alpha = 0.6f),
@@ -69,7 +72,7 @@ class VideoListScreen : Screen {
             ) {
                 items(dummyVideos) { video ->
                     VideoCard(video = video) {
-                        // 2. بگ فکس: thumbnailUrl کی جگہ videoUrl بھیجیں تاکہ ویڈیو چلے
+                        // 2. بگ فکس: thumbnailUrl کی جگہ videoUrl بھیجیں
                         navigator.push(VideoPlayerScreen(video.videoUrl, video.title))
                     }
                 }
