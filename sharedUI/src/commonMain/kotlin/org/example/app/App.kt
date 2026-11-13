@@ -9,7 +9,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import org.example.app.core.platform.VideoPlayerView // ہمارا نیا کمپوننٹ
+import org.example.app.core.platform.VideoPlayerView
 
 // 1. ڈیٹا ماڈل
 data class DummyVideo(
@@ -19,13 +19,17 @@ data class DummyVideo(
     val thumbnailUrl: String
 )
 
+// 2. ڈمی ویڈیوز کی لسٹ
 val dummyVideos = listOf(
     DummyVideo("1", "Kotlin Multiplatform Tutorial", "Tech Channel", "https://picsum.photos/seed/video1/500/300"),
     DummyVideo("2", "Build Your First App in 10 Mins", "Coding Life", "https://picsum.photos/seed/video2/500/300"),
     DummyVideo("3", "Compose UI Basics for Beginners", "Android Dev", "https://picsum.photos/seed/video3/500/300")
 )
 
-// 2. مین ایپ فنکشن
+// 3. 100% ورکنگ ٹیسٹ ویڈیو URL (HTTPS)
+val sampleVideoUrl = "https://storage.googleapis.com/exoplayer-test-media-0/BigBuckBunny_320x180.mp4"
+
+// 4. مین ایپ فنکشن
 @Composable
 fun App(modifier: Modifier = Modifier) {
     MaterialTheme {
@@ -38,12 +42,12 @@ fun App(modifier: Modifier = Modifier) {
     }
 }
 
-// 3. اسکرین جس میں پلیر اور لسٹ دونوں ہیں
+// 5. مین اسکرین
 @Composable
 fun VideoPlayerDemoScreen() {
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text("My Video") })
+            TopAppBar(title = { Text("میری ویڈیو ایپ") })
         }
     ) { padding ->
         Column(
@@ -51,25 +55,23 @@ fun VideoPlayerDemoScreen() {
                 .fillMaxSize()
                 .padding(padding)
         ) {
-            // ویڈیو پلیر (اپنے کنٹرولز کے ساتھ)
+            // 👇 ویڈیو پلیر (isPlaying = true رکھا ہے تاکہ فوراً لوڈ ہو جائے)
             VideoPlayerView(
-                videoUrl = https://storage.googleapis.com/exoplayer-test-media-0/BigBuckBunny_320x180.mp4,
-                isPlaying = true, // ہمیشہ true رکھیں، ExoPlayer خود کنٹرول کرے گا
+                videoUrl = sampleVideoUrl,
+                isPlaying = true,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(250.dp)
             )
 
-            // ❌ یہ بٹن ہٹا دیں - اب اس کی ضرورت نہیں
-            // Button(onClick = { isPlaying = !isPlaying }) { ... }
-
-            // ویڈیو لسٹ
+            // لسٹ کا ہیڈر
             Text(
                 text = "تجویز کردہ ویڈیوز",
                 style = MaterialTheme.typography.titleLarge,
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
             )
 
+            // ویڈیو لسٹ
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
@@ -83,7 +85,7 @@ fun VideoPlayerDemoScreen() {
     }
 }
 
-// 4. ویڈیو کارڈ (Placeholder کے ساتھ تاکہ UI ٹوٹے نہیں)
+// 6. ویڈیو کارڈ (UI)
 @Composable
 fun VideoCard(video: DummyVideo) {
     Card(
@@ -91,7 +93,6 @@ fun VideoCard(video: DummyVideo) {
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
-            // عارضی تھمب نیل (جب تک Coil مکمل کنفیگر نہ ہو)
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
