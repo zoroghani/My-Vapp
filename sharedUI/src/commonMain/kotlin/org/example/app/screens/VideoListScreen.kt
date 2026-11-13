@@ -56,7 +56,7 @@ class VideoListScreen : Screen {
                     containerColor = Color.White.copy(alpha = 0.6f),
                     contentColor = Color(0xFF6200EE)
                 ) {
-                    Text("➕ اپ لوڈ")
+                    Text("➕")
                 }
             }
         ) { padding ->
