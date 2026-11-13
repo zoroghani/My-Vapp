@@ -34,24 +34,23 @@ val sampleVideoUrl = "https://storage.googleapis.com/exoplayer-test-media-0/BigB
 // 4. مین ایپ فنکشن
 @Composable
 fun VideoPlayerDemoScreen() {
-    // 1. FileKit کا لانچر یاد رکھیں (Remember)
+    // 1. سب سے پہلے اسٹیٹ (State) ڈیفائن کریں
+    var selectedVideoUrl by remember { mutableStateOf(sampleVideoUrl) }
+
+    // 2. پھر File Picker لانچر بنائیں (جو اوپر والی اسٹیٹ کو استعمال کرے گا)
     val picker = rememberFilePickerLauncher(
-        type = PickerType.Video, // صرف ویڈیوز دکھائے گا
+        type = PickerType.Video,
         title = "ویڈیو منتخب کریں"
     ) { file ->
         if (file != null) {
-            // جب صارف ویڈیو منتخب کر لے، تو اس کا پاتھ یہاں مل جائے گا
             println("✅ منتخب شدہ ویڈیو: ${file.path}")
-            selectedVideoUrl = file.path // اسے نیچے والے متغیر میں محفوظ کریں
+            selectedVideoUrl = file.path // اب یہ ایرر نہیں دے گا
         }
     }
 
-    // 2. منتخب شدہ ویڈیو کا پاتھ (ڈیفالٹ طور پر ہماری ٹیسٹ ویڈیو)
-    var selectedVideoUrl by remember { mutableStateOf(sampleVideoUrl) }
-
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text("My Video") })
+            TopAppBar(title = { Text("میری ویڈیو ایپ") })
         }
     ) { padding ->
         Column(
@@ -59,7 +58,7 @@ fun VideoPlayerDemoScreen() {
                 .fillMaxSize()
                 .padding(padding)
         ) {
-            // 3. ویڈیو پلیر (اب یہ ڈیفالٹ یا منتخب شدہ ویڈیو چلائے گا)
+            // 3. ویڈیو پلیر (ڈیفالٹ یا منتخب شدہ ویڈیو چلائے گا)
             VideoPlayerView(
                 videoUrl = selectedVideoUrl,
                 isPlaying = true,
@@ -68,19 +67,19 @@ fun VideoPlayerDemoScreen() {
                     .height(250.dp)
             )
 
-            // 4. ویڈیو اپ لوڈ / منتخب کرنے کا بٹن
+            // 4. ویڈیو منتخب کرنے کا بٹن
             Button(
-                onClick = { picker.launch() }, // 👈 یہ بٹن دبائیں گے تو گیلری کھلے گی
+                onClick = { picker.launch() }, 
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(16.dp)
             ) {
-                Text("📁 Select video")
+                Text("📁 گیلری سے ویڈیو منتخب کریں")
             }
 
             // لسٹ کا ہیڈر
             Text(
-                text = "Recommended videos",
+                text = "تجویز کردہ ویڈیوز",
                 style = MaterialTheme.typography.titleLarge,
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
             )
