@@ -48,6 +48,8 @@ kotlin {
             implementation(libs.androidx.lifecycle.viewmodelCompose)
             implementation(libs.androidx.lifecycle.runtimeCompose)
             implementation(project(":sharedLogic"))
+            implementation(libs.voyager.navigator)
+            implementation(libs.voyager.screenModel)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
