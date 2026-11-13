@@ -41,7 +41,7 @@ fun App(modifier: Modifier = Modifier) {
 // 3. اسکرین جس میں پلیر اور لسٹ دونوں ہیں
 @Composable
 fun VideoPlayerDemoScreen() {
-    var isPlaying by remember { mutableStateOf(false) }
+    var isPlaying by remember { mutableStateOf(true) }
     
     // ایک مفت اور اوپن سورس ٹیسٹ ویڈیو (Big Buck Bunny)
     val sampleVideoUrl = "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
