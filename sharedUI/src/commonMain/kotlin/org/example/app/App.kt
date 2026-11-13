@@ -44,7 +44,7 @@ fun VideoPlayerDemoScreen() {
     var isPlaying by remember { mutableStateOf(true) }
     
     // ایک مفت اور اوپن سورس ٹیسٹ ویڈیو (Big Buck Bunny)
-    val sampleVideoUrl = "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
+    val sampleVideoUrl = "https://storage.googleapis.com/exoplayer-test-media-0/BigBuckBunny_320x180.mp4"
 
     Scaffold(
         topBar = {
