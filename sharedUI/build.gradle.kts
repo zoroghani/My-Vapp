@@ -34,6 +34,7 @@ kotlin {
             implementation(libs.compose.uiTooling)
             implementation("androidx.media3:media3-exoplayer:1.3.1")
             implementation("androidx.media3:media3-ui:1.3.1")
+            implementation(libs.filekit.compose)
         }
         commonMain.dependencies {
             api(project(":sharedLogic"))
