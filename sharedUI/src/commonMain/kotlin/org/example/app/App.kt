@@ -12,7 +12,8 @@ data class DummyVideo(
     val id: String,
     val title: String,
     val channel: String,
-    val thumbnailUrl: String
+    val thumbnailUrl: String,
+    val videoUrl: String
 )
 
 // 2. ڈمی ڈیٹا لسٹ (یہاں ہونا ضروری ہے)
