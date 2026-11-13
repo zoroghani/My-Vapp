@@ -64,7 +64,7 @@ class VideoListScreen : Screen {
             ) {
                 items(dummyVideos) { video ->
                     VideoCard(video = video) {
-                        navigator.push(VideoPlayerScreen(video.thumbnailUrl, video.title))
+                       navigator.push(VideoPlayerScreen(video.videoUrl, video.title))
                     }
                 }
             }
