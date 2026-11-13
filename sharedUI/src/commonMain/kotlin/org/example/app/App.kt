@@ -53,7 +53,7 @@ fun VideoPlayerDemoScreen() {
         ) {
             // ویڈیو پلیر (اپنے کنٹرولز کے ساتھ)
             VideoPlayerView(
-                videoUrl = sampleVideoUrl,
+                videoUrl = https://storage.googleapis.com/exoplayer-test-media-0/BigBuckBunny_320x180.mp4,
                 isPlaying = true, // ہمیشہ true رکھیں، ExoPlayer خود کنٹرول کرے گا
                 modifier = Modifier
                     .fillMaxWidth()
