@@ -94,15 +94,15 @@ fun VideoCard(video: DummyVideo, onClick: () -> Unit) {
         border = BorderStroke(1.dp, Color.White.copy(alpha = 0.7f))
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(150.dp)
-                    .background(Color(0xFFE0E7FF).copy(alpha = 0.5f)),
-                contentAlignment = Alignment.Center
-            ) {
-                Text("🖼️ Thumbnail", color = Color(0xFF312E81))
-            }
+            AsyncImage(
+    model = video.thumbnailUrl,
+    contentDescription = video.title,
+    modifier = Modifier
+        .fillMaxWidth()
+        .height(150.dp)
+        .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)),
+    contentScale = ContentScale.Crop
+)
             Column(modifier = Modifier.padding(12.dp)) {
                 Text(
                     text = video.title,
