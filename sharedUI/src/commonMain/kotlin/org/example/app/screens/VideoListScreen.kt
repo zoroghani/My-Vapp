@@ -29,8 +29,9 @@ class VideoListScreen : Screen {
             type = PickerType.Video,
             title = "ویڈیو منتخب کریں"
         ) { file ->
-            if (file != null) {
-                navigator.push(VideoPlayerScreen(file.path, "آپ کی اپ لوڈ کردہ ویڈیو"))
+            // 👇 یہاں Null Check لگا دیا ہے تاکہ ایرر نہ آئے
+            if (file != null && file.path != null) {
+                navigator.push(VideoPlayerScreen(file.path!!, "آپ کی اپ لوڈ کردہ ویڈیو"))
             }
         }
 
@@ -39,16 +40,14 @@ class VideoListScreen : Screen {
                 TopAppBar(
                     title = { Text("میری ویڈیو ایپ") },
                     colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = Color.Transparent // ٹاپ بار کو بھی شفاف رکھیں
+                        containerColor = Color.Transparent
                     )
                 )
             },
-            // 👇 گلاس ایفیکٹ کے لیے ہلکا سا رنگین پس منظر
             containerColor = Color(0xFFE8EAF6), 
             floatingActionButton = {
                 FloatingActionButton(
                     onClick = { picker.launch() },
-                    // 👇 فلوٹنگ بٹن کو بھی ہلکا شفاف بنائیں
                     containerColor = Color.White.copy(alpha = 0.6f),
                     contentColor = Color(0xFF6200EE)
                 ) {
@@ -77,20 +76,19 @@ class VideoListScreen : Screen {
 fun VideoCard(video: DummyVideo, onClick: () -> Unit) {
     Card(
         onClick = onClick,
-        // 👇 گلاس ایفیکٹ کی سیٹنگز
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color.White.copy(alpha = 0.4f) // 40% شفاف سفید
+            containerColor = Color.White.copy(alpha = 0.4f)
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp), // شیڈو ہٹا دیں
-        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.7f)) // شیشے جیسا چمکدار بارڈر
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.7f))
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(150.dp)
-                    .background(Color(0xFFE0E7FF).copy(alpha = 0.5f)), // تھمب نیل باکس بھی ہلکا شفاف
+                    .background(Color(0xFFE0E7FF).copy(alpha = 0.5f)),
                 contentAlignment = Alignment.Center
             ) {
                 Text("🖼️ Thumbnail", color = Color(0xFF312E81))
@@ -100,13 +98,13 @@ fun VideoCard(video: DummyVideo, onClick: () -> Unit) {
                     text = video.title, 
                     style = MaterialTheme.typography.titleMedium, 
                     maxLines = 2,
-                    color = Color(0xFF1F2937) // گہرا ٹیکسٹ تاکہ شیشے پر صاف پڑھا جا سکے
+                    color = Color(0xFF1F2937)
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = video.channel, 
                     style = MaterialTheme.typography.bodyMedium, 
-                    color = Color(0xFF4B5563) // ہلکا ٹیکسٹ
+                    color = Color(0xFF4B5563)
                 )
             }
         }
