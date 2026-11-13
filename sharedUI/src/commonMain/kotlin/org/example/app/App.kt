@@ -34,17 +34,21 @@ val sampleVideoUrl = "https://storage.googleapis.com/exoplayer-test-media-0/BigB
 // 4. مین ایپ فنکشن
 @Composable
 fun VideoPlayerDemoScreen() {
-    // 1. سب سے پہلے اسٹیٹ (State) ڈیفائن کریں
     var selectedVideoUrl by remember { mutableStateOf(sampleVideoUrl) }
+    var selectedThumbnail by remember { mutableStateOf<ImageBitmap?>(null) }
 
-    // 2. پھر File Picker لانچر بنائیں (جو اوپر والی اسٹیٹ کو استعمال کرے گا)
     val picker = rememberFilePickerLauncher(
         type = PickerType.Video,
         title = "ویڈیو منتخب کریں"
     ) { file ->
         if (file != null) {
-            println("✅ منتخب شدہ ویڈیو: ${file.path}")
-            selectedVideoUrl = file.path // اب یہ ایرر نہیں دے گا
+            selectedVideoUrl = file.path
+            
+            // 👇 خودکار تھمب نیل بنائیں
+            val bytes = extractThumbnail(file.path)
+            if (bytes != null) {
+                selectedThumbnail = bytesToImageBitmap(bytes)
+            }
         }
     }
 
@@ -58,18 +62,28 @@ fun VideoPlayerDemoScreen() {
                 .fillMaxSize()
                 .padding(padding)
         ) {
-            // 3. ویڈیو پلیر (ڈیفالٹ یا منتخب شدہ ویڈیو چلائے گا)
-            VideoPlayerView(
-                videoUrl = selectedVideoUrl,
-                isPlaying = true,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(250.dp)
-            )
+            // 👇 اگر تھمب نیل ہے تو دکھائیں، ورنہ پلیر
+            if (selectedThumbnail != null) {
+                Image(
+                    bitmap = selectedThumbnail!!,
+                    contentDescription = "Video Thumbnail",
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(250.dp),
+                    contentScale = ContentScale.Crop
+                )
+            } else {
+                VideoPlayerView(
+                    videoUrl = selectedVideoUrl,
+                    isPlaying = true,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(250.dp)
+                )
+            }
 
-            // 4. ویڈیو منتخب کرنے کا بٹن
             Button(
-                onClick = { picker.launch() }, 
+                onClick = { picker.launch() },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(16.dp)
@@ -77,14 +91,12 @@ fun VideoPlayerDemoScreen() {
                 Text("📁 گیلری سے ویڈیو منتخب کریں")
             }
 
-            // لسٹ کا ہیڈر
             Text(
                 text = "تجویز کردہ ویڈیوز",
                 style = MaterialTheme.typography.titleLarge,
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
             )
 
-            // ویڈیو لسٹ
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
@@ -97,7 +109,6 @@ fun VideoPlayerDemoScreen() {
         }
     }
 }
-
 // 6. ویڈیو کارڈ (UI)
 @Composable
 fun VideoCard(video: DummyVideo) {
