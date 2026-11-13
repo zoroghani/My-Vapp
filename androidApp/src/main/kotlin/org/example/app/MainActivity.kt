@@ -12,6 +12,8 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
 
+        FileKit.init(this)
+
         setContent {
             App()
         }
