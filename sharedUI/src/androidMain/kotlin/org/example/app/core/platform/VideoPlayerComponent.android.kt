@@ -17,27 +17,28 @@ actual fun VideoPlayerView(
 ) {
     val context = LocalContext.current
     
-    // ExoPlayer کو یاد رکھیں تاکہ بار بار ری کریٹ نہ ہو
+    // 1. ExoPlayer کو ایک بار بنائیں اور یاد رکھیں (Remember)
     val exoPlayer = remember(videoUrl) {
         ExoPlayer.Builder(context).build().apply {
             setMediaItem(MediaItem.fromUri(videoUrl))
-            prepare()
+            prepare() // ویڈیو کو بفر کرنا شروع کر دے
+            playWhenReady = isPlaying // 👈 یہ جادوئی لائن ہے!
         }
     }
     
-    // جب Composable اسکرین سے ہٹے، تو پلیر کو ریلیز کر دیں
+    // 2. جب اسکرین بند ہو، تو پلیر کو میموری سے صاف کر دیں
     DisposableEffect(Unit) {
         onDispose {
             exoPlayer.release()
         }
     }
     
-    // Play/Pause کنٹرول
+    // 3. جب باہر سے isPlaying تبدیل ہو، تو پلیر کو اپ ڈیٹ کریں
     LaunchedEffect(isPlaying) {
-        if (isPlaying) exoPlayer.play() else exoPlayer.pause()
+        exoPlayer.playWhenReady = isPlaying
     }
     
-    // اینڈرائیڈ کا نیٹو PlayerView
+    // 4. اینڈرائیڈ کا نیٹو PlayerView دکھائیں
     AndroidView(
         factory = { ctx ->
             PlayerView(ctx).apply {
@@ -46,8 +47,12 @@ actual fun VideoPlayerView(
                     ViewGroup.LayoutParams.MATCH_PARENT,
                     ViewGroup.LayoutParams.MATCH_PARENT
                 )
-                useController = true // Play/Pause بٹن دکھائیں
+                useController = true // کنٹرولز دکھائیں
             }
+        },
+        update = { playerView ->
+            // Recomposition پر پلیر کو دوبارہ اٹیچ کریں
+            playerView.player = exoPlayer
         },
         modifier = modifier
     )
