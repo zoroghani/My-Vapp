@@ -10,6 +10,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import org.example.app.core.platform.VideoPlayerView
+import io.github.vinceglb.filekit.compose.rememberFilePickerLauncher
+import io.github.vinceglb.filekit.core.PickerType
 
 // 1. ڈیٹا ماڈل
 data class DummyVideo(
@@ -31,23 +33,25 @@ val sampleVideoUrl = "https://storage.googleapis.com/exoplayer-test-media-0/BigB
 
 // 4. مین ایپ فنکشن
 @Composable
-fun App(modifier: Modifier = Modifier) {
-    MaterialTheme {
-        Surface(
-            modifier = modifier.fillMaxSize(),
-            color = MaterialTheme.colorScheme.background
-        ) {
-            VideoPlayerDemoScreen()
+fun VideoPlayerDemoScreen() {
+    // 1. FileKit کا لانچر یاد رکھیں (Remember)
+    val picker = rememberFilePickerLauncher(
+        type = PickerType.Video, // صرف ویڈیوز دکھائے گا
+        title = "ویڈیو منتخب کریں"
+    ) { file ->
+        if (file != null) {
+            // جب صارف ویڈیو منتخب کر لے، تو اس کا پاتھ یہاں مل جائے گا
+            println("✅ منتخب شدہ ویڈیو: ${file.path}")
+            selectedVideoUrl = file.path // اسے نیچے والے متغیر میں محفوظ کریں
         }
     }
-}
 
-// 5. مین اسکرین
-@Composable
-fun VideoPlayerDemoScreen() {
+    // 2. منتخب شدہ ویڈیو کا پاتھ (ڈیفالٹ طور پر ہماری ٹیسٹ ویڈیو)
+    var selectedVideoUrl by remember { mutableStateOf(sampleVideoUrl) }
+
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text("میری ویڈیو ایپ") })
+            TopAppBar(title = { Text("My Video") })
         }
     ) { padding ->
         Column(
@@ -55,18 +59,28 @@ fun VideoPlayerDemoScreen() {
                 .fillMaxSize()
                 .padding(padding)
         ) {
-            // 👇 ویڈیو پلیر (isPlaying = true رکھا ہے تاکہ فوراً لوڈ ہو جائے)
+            // 3. ویڈیو پلیر (اب یہ ڈیفالٹ یا منتخب شدہ ویڈیو چلائے گا)
             VideoPlayerView(
-                videoUrl = sampleVideoUrl,
+                videoUrl = selectedVideoUrl,
                 isPlaying = true,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(250.dp)
             )
 
+            // 4. ویڈیو اپ لوڈ / منتخب کرنے کا بٹن
+            Button(
+                onClick = { picker.launch() }, // 👈 یہ بٹن دبائیں گے تو گیلری کھلے گی
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+            ) {
+                Text("📁 Select video")
+            }
+
             // لسٹ کا ہیڈر
             Text(
-                text = "تجویز کردہ ویڈیوز",
+                text = "Recommended videos",
                 style = MaterialTheme.typography.titleLarge,
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
             )
