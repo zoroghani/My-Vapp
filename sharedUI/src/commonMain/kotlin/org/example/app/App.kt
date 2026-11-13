@@ -1,5 +1,10 @@
 package org.example.app
 
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.foundation.layout.Box
+import org.example.app.core.platform.bytesToImageBitmap
+import org.example.app.core.platform.extractThumbnail
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
