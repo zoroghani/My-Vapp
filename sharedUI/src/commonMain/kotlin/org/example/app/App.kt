@@ -41,11 +41,6 @@ fun App(modifier: Modifier = Modifier) {
 // 3. اسکرین جس میں پلیر اور لسٹ دونوں ہیں
 @Composable
 fun VideoPlayerDemoScreen() {
-    var isPlaying by remember { mutableStateOf(true) }
-    
-    // ایک مفت اور اوپن سورس ٹیسٹ ویڈیو (Big Buck Bunny)
-    val sampleVideoUrl = "https://storage.googleapis.com/exoplayer-test-media-0/BigBuckBunny_320x180.mp4"
-
     Scaffold(
         topBar = {
             TopAppBar(title = { Text("My Video") })
@@ -56,33 +51,25 @@ fun VideoPlayerDemoScreen() {
                 .fillMaxSize()
                 .padding(padding)
         ) {
-            // 👇 یہاں ہمارا VideoPlayerView استعمال ہو رہا ہے
+            // ویڈیو پلیر (اپنے کنٹرولز کے ساتھ)
             VideoPlayerView(
                 videoUrl = sampleVideoUrl,
-                isPlaying = isPlaying,
+                isPlaying = true, // ہمیشہ true رکھیں، ExoPlayer خود کنٹرول کرے گا
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(250.dp)
             )
 
-            // پلے / پوز بٹن
-            Button(
-                onClick = { isPlaying = !isPlaying },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp)
-            ) {
-                Text(if (isPlaying) "Pause ⏸️" else "Play ▶️")
-            }
+            // ❌ یہ بٹن ہٹا دیں - اب اس کی ضرورت نہیں
+            // Button(onClick = { isPlaying = !isPlaying }) { ... }
 
-            // ویڈیو لسٹ کا ہیڈر
+            // ویڈیو لسٹ
             Text(
-                text = "Recommended Videos",
+                text = "تجویز کردہ ویڈیوز",
                 style = MaterialTheme.typography.titleLarge,
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
             )
 
-            // لسٹ
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
