@@ -4,6 +4,8 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -22,22 +24,44 @@ fun VideoCard(video: DummyVideo, onClick: () -> Unit) {
         onClick = onClick,
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color.White.copy(alpha = 0.5f)
+            containerColor = Color.White.copy(alpha = 0.5f) // گلاس ایفیکٹ
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
         border = BorderStroke(1.dp, Color.White.copy(alpha = 0.8f))
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
-            AsyncImage(
-                model = video.thumbnailUrl,
-                contentDescription = video.title,
+            // تھمب نیل باکس
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(180.dp)
-                    .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)),
-                contentScale = ContentScale.Crop
-            )
+            ) {
+                // اصل تصویر
+                AsyncImage(
+                    model = video.thumbnailUrl,
+                    contentDescription = video.title,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)),
+                    contentScale = ContentScale.Crop
+                )
+                
+                // 👇 تین ڈاٹ مینو آئیکن (Material Icon - کوئی بیرونی لائبریری نہیں)
+                IconButton(
+                    onClick = { /* مینو ایکشن یہاں آئے گا */ },
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(4.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.MoreVert,
+                        contentDescription = "More options",
+                        tint = Color.White // تصویر کے اوپر سفید رنگ میں
+                    )
+                }
+            }
             
+            // ٹائٹل اور چینل کی تفصیلات
             Column(modifier = Modifier.padding(12.dp)) {
                 Text(
                     text = video.title,
