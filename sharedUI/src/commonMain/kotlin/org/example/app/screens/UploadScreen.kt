@@ -43,11 +43,26 @@ class UploadScreen : Screen {
         var uploadProgress by remember { mutableStateOf(0f) }
         
         // Native Video Picker
+        var thumbnailBitmap by remember { mutableStateOf<ImageBitmap?>(null) }
+
         val launchVideoPicker = rememberVideoPicker { path ->
-            videoPath = path
-            // Thumbnail کے لیے ایک placeholder (آپ بعد میں MediaMetadataRetriever سے اصل thumbnail لے سکتے ہیں)
-            videoThumbnail = "https://picsum.photos/seed/upload/${System.currentTimeMillis()}/640/360"
+          videoPath = path
+    
+        // Android پر native thumbnail نکالیں
+        if (path.startsWith("content://")) {
+        // Android-specific: context کے ساتھ
+        val context = LocalContext.current
+        kotlinx.coroutines.GlobalScope.launch(Dispatchers.IO) {
+            val thumb = extractVideoThumbnailAndroid(context, path)
+            thumbnailBitmap = thumb
         }
+    } else {
+        // iOS/Desktop: common function
+        kotlinx.coroutines.GlobalScope.launch {
+            thumbnailBitmap = extractVideoThumbnail(path)
+        }
+    }
+}
         
         // Progress animation
         val progressAnim = remember { Animatable(0f) }
