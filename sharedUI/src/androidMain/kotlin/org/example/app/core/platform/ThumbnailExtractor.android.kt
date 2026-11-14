@@ -6,12 +6,13 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import org.example.app.AppContext
 
 actual suspend fun extractVideoThumbnail(videoPath: String): ImageBitmap? = withContext(Dispatchers.IO) {
     try {
         val retriever = MediaMetadataRetriever()
-        val context = AppContext.context
+        
+        // 👇 sharedUI والے object سے Context حاصل کریں
+        val context = SharedAppContext.androidContext as? android.content.Context
         
         if (videoPath.startsWith("content://") && context != null) {
             retriever.setDataSource(context, Uri.parse(videoPath))
