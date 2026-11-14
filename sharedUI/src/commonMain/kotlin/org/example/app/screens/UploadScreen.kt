@@ -3,7 +3,7 @@ package org.example.app.screens
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Image // 👈 یہ امپورٹ لازمی ہے
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -11,8 +11,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.AutoMirrored.Filled.ArrowBack // 👈 درست امپورٹ
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.filled.* // 👈 تمام Default آئیکنز
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -20,9 +19,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ImageBitmap // 👈 یہ امپورٹ لازمی ہے
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext // 👈 یہ امپورٹ لازمی ہے
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -33,14 +31,12 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.example.app.core.platform.extractVideoThumbnail
-import org.example.app.core.platform.extractVideoThumbnailAndroid
 import org.example.app.core.platform.rememberVideoPicker
 
 class UploadScreen : Screen {
     @Composable
     override fun Content() {
         val navigator = LocalNavigator.currentOrThrow
-        val context = LocalContext.current // 👈 یہاں @Composable کے اندر لیا گیا ہے
         
         var videoPath by remember { mutableStateOf<String?>(null) }
         var thumbnailBitmap by remember { mutableStateOf<ImageBitmap?>(null) }
@@ -57,14 +53,9 @@ class UploadScreen : Screen {
         val launchVideoPicker = rememberVideoPicker { path ->
             videoPath = path
             
-            // 👈 تھمب نیل نکالنے کا درست طریقہ
+            // 👈 اب یہ سادہ اور کراس پلیٹ فارم ہے
             kotlinx.coroutines.GlobalScope.launch(Dispatchers.IO) {
-                val thumb = if (path.startsWith("content://")) {
-                    extractVideoThumbnailAndroid(context, path)
-                } else {
-                    extractVideoThumbnail(path)
-                }
-                
+                val thumb = extractVideoThumbnail(path)
                 withContext(Dispatchers.Main) {
                     thumbnailBitmap = thumb
                 }
@@ -80,7 +71,7 @@ class UploadScreen : Screen {
                     navigationIcon = {
                         IconButton(onClick = { navigator.pop() }) {
                             Icon(
-                                Icons.AutoMirrored.Filled.ArrowBack, // 👈 درست آئیکن
+                                Icons.Default.ArrowBack, // 👈 سادہ ArrowBack استعمال کیا
                                 contentDescription = "Back",
                                 tint = Color.White
                             )
