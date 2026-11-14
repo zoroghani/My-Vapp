@@ -23,67 +23,29 @@ fun VideoCard(video: DummyVideo, onClick: () -> Unit) {
     Card(
         onClick = onClick,
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = Color.White.copy(alpha = 0.5f) // گلاس ایفیکٹ
-        ),
+        colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.5f)),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
         border = BorderStroke(1.dp, Color.White.copy(alpha = 0.8f))
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
-            // تھمب نیل باکس
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(180.dp)
-            ) {
-                // اصل تصویر
-                if (thumbnailBitmap != null) {
-    Image(
-        bitmap = thumbnailBitmap!!,
-        contentDescription = "Video Thumbnail",
-        modifier = Modifier.fillMaxSize(),
-        contentScale = ContentScale.Crop
-    )
-} else {
-    // Placeholder جب thumbnail نہ ہو
-    Box(
-        modifier = Modifier.fillMaxSize().background(Color.Gray),
-        contentAlignment = Alignment.Center
-    ) {
-        CircularProgressIndicator(color = Color.White)
-    }
-                }
-                
-                // 👇 تین ڈاٹ مینو آئیکن (Material Icon - کوئی بیرونی لائبریری نہیں)
+            Box(modifier = Modifier.fillMaxWidth().height(180.dp)) {
+                AsyncImage(
+                    model = video.thumbnailUrl,
+                    contentDescription = video.title,
+                    modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)),
+                    contentScale = ContentScale.Crop
+                )
                 IconButton(
-                    onClick = { /* مینو ایکشن یہاں آئے گا */ },
-                    modifier = Modifier
-                        .align(Alignment.TopEnd)
-                        .padding(4.dp)
+                    onClick = { },
+                    modifier = Modifier.align(Alignment.TopEnd).padding(4.dp)
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.MoreVert,
-                        contentDescription = "More options",
-                        tint = Color.Blue // تصویر کے اوپر نیلے رنگ میں
-                    )
+                    Icon(imageVector = Icons.Default.MoreVert, contentDescription = "More options", tint = Color.White)
                 }
             }
-            
-            // ٹائٹل اور چینل کی تفصیلات
             Column(modifier = Modifier.padding(12.dp)) {
-                Text(
-                    text = video.title,
-                    style = MaterialTheme.typography.titleMedium,
-                    maxLines = 2,
-                    color = Color(0xFF1F2937),
-                    fontWeight = FontWeight.Medium
-                )
+                Text(text = video.title, style = MaterialTheme.typography.titleMedium, maxLines = 2, color = Color(0xFF1F2937), fontWeight = FontWeight.Medium)
                 Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = video.channel,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = Color(0xFF4B5563)
-                )
+                Text(text = video.channel, style = MaterialTheme.typography.bodyMedium, color = Color(0xFF4B5563))
             }
         }
     }
