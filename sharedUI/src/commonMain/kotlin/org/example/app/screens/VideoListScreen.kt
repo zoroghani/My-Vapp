@@ -22,10 +22,9 @@ import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import coil3.compose.AsyncImage
-import io.github.vinceglb.filekit.compose.rememberFilePickerLauncher
-import io.github.vinceglb.filekit.core.PickerType
 import org.example.app.DummyVideo
 import org.example.app.dummyVideos
+import org.example.app.core.platform.rememberVideoPicker
 
 class VideoListScreen : Screen {
     @Composable
@@ -33,14 +32,8 @@ class VideoListScreen : Screen {
         val navigator = LocalNavigator.currentOrThrow
         var selectedTab by remember { mutableStateOf(0) }
 
-        val picker = rememberFilePickerLauncher(
-            type = PickerType.Video,
-            title = "ویڈیو منتخب کریں"
-        ) { file ->
-            val videoPath = file?.path
-            if (videoPath != null) {
-                navigator.push(VideoPlayerScreen(videoPath, "آپ کی اپ لوڈ کردہ ویڈیو"))
-            }
+        val launchVideoPicker = rememberVideoPicker { videoPath ->
+            navigator.push(VideoPlayerScreen(videoPath, "آپ کی اپ لوڈ کردہ ویڈیو"))
         }
 
         Scaffold(
@@ -63,12 +56,12 @@ class VideoListScreen : Screen {
                             Icon(Icons.Default.Notifications, contentDescription = "Notifications", tint = Color(0xFF1F2937))
                         }
                     },
-                    colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFFE8EAF6).copy(alpha = 0.9f))
+                    colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFFE8EAF6).copy(alpha = 0.6f))
                 )
             },
             bottomBar = {
                 NavigationBar(
-                    containerColor = Color.White.copy(alpha = 0.8f),
+                    containerColor = Color.White.copy(alpha = 0.6f),
                     tonalElevation = 0.dp
                 ) {
                     NavigationBarItem(
@@ -79,7 +72,7 @@ class VideoListScreen : Screen {
                     )
                     NavigationBarItem(
                         icon = { Icon(Icons.Default.PlayCircle, contentDescription = "Reels") },
-                        label = { Text("Reels", fontSize = 10.sp) },
+                        label = { Text("Clips", fontSize = 10.sp) },
                         selected = selectedTab == 1,
                         onClick = { selectedTab = 1 }
                     )
@@ -89,7 +82,7 @@ class VideoListScreen : Screen {
                         selected = false,
                         onClick = { 
                             selectedTab = 2
-                            picker.launch() 
+                            launchVideoPicker() // 👈 یہاں نیا فنکشن کال ہوگا (picker.launch() نہیں)
                         }
                     )
                     NavigationBarItem(
