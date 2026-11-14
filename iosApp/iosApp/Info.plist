@@ -4,5 +4,7 @@
 <dict>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
+    <key>NSPhotoLibraryUsageDescription</key>
+    <string>ہمیں آپ کی ویڈیوز منتخب کرنے کے لیے فوٹو لائبریری تک رسائی کی ضرورت ہے۔</string>
 </dict>
 </plist>
