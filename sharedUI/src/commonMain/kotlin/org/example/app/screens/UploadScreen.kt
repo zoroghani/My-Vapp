@@ -27,6 +27,14 @@ import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import coil3.compose.AsyncImage
 import org.example.app.core.platform.rememberVideoPicker
+import androidx.compose.foundation.Image
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.material3.CircularProgressIndicator
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import androidx.compose.ui.platform.LocalContext
+import org.example.app.core.platform.extractVideoThumbnail
+import org.example.app.core.platform.extractVideoThumbnailAndroid
 
 class UploadScreen : Screen {
     
