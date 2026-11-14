@@ -30,6 +30,7 @@ kotlin {
     }
     sourceSets {
         androidMain.dependencies {
+            implementation("androidx.activity:activity-compose:1.9.0")
             implementation(libs.compose.uiToolingPreview)
             implementation(libs.compose.uiTooling)
             implementation("androidx.media3:media3-exoplayer:1.3.1")
