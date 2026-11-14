@@ -49,7 +49,6 @@ kotlin {
             implementation(project(":sharedLogic"))
             implementation(libs.voyager.navigator)
             implementation(libs.voyager.screenModel)
-            implementation(libs.filekit.compose)
             implementation(compose.materialIconsExtended)
         }
         commonTest.dependencies {
