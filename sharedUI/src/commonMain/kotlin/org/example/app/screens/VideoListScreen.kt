@@ -81,9 +81,9 @@ class VideoListScreen : Screen {
                         label = { },
                         selected = false,
                         onClick = { 
-                            selectedTab = 2
-                            launchVideoPicker() // 👈 یہاں نیا فنکشن کال ہوگا (picker.launch() نہیں)
-                        }
+                        selectedTab = 2
+                        navigator.push(UploadScreen())  // 👈 اب Upload سکرین کھلے گی
+                      }
                     )
                     NavigationBarItem(
                         icon = { Icon(Icons.Default.Mail, contentDescription = "Inbox") },
