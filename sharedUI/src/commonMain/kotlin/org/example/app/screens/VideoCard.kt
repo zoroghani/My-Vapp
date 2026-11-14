@@ -37,14 +37,22 @@ fun VideoCard(video: DummyVideo, onClick: () -> Unit) {
                     .height(180.dp)
             ) {
                 // اصل تصویر
-                AsyncImage(
-                    model = video.thumbnailUrl,
-                    contentDescription = video.title,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)),
-                    contentScale = ContentScale.Crop
-                )
+                if (thumbnailBitmap != null) {
+    Image(
+        bitmap = thumbnailBitmap!!,
+        contentDescription = "Video Thumbnail",
+        modifier = Modifier.fillMaxSize(),
+        contentScale = ContentScale.Crop
+    )
+} else {
+    // Placeholder جب thumbnail نہ ہو
+    Box(
+        modifier = Modifier.fillMaxSize().background(Color.Gray),
+        contentAlignment = Alignment.Center
+    ) {
+        CircularProgressIndicator(color = Color.White)
+    }
+                }
                 
                 // 👇 تین ڈاٹ مینو آئیکن (Material Icon - کوئی بیرونی لائبریری نہیں)
                 IconButton(
@@ -56,7 +64,7 @@ fun VideoCard(video: DummyVideo, onClick: () -> Unit) {
                     Icon(
                         imageVector = Icons.Default.MoreVert,
                         contentDescription = "More options",
-                        tint = Color.White // تصویر کے اوپر سفید رنگ میں
+                        tint = Color.Blue // تصویر کے اوپر نیلے رنگ میں
                     )
                 }
             }
