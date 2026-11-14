@@ -34,7 +34,6 @@ kotlin {
             implementation(libs.compose.uiTooling)
             implementation("androidx.media3:media3-exoplayer:1.3.1")
             implementation("androidx.media3:media3-ui:1.3.1")
-            implementation(libs.filekit.compose)
         }
         commonMain.dependencies {
             api(project(":sharedLogic"))
@@ -44,13 +43,14 @@ kotlin {
             implementation(libs.compose.ui)
             implementation(libs.compose.components.resources)
             implementation(libs.coil.compose)
-            implementation(libs.compose.icons.feather)
             implementation(libs.compose.uiToolingPreview)
             implementation(libs.androidx.lifecycle.viewmodelCompose)
             implementation(libs.androidx.lifecycle.runtimeCompose)
             implementation(project(":sharedLogic"))
             implementation(libs.voyager.navigator)
             implementation(libs.voyager.screenModel)
+            implementation(libs.filekit.compose)
+            implementation(libs.compose.icons.feather)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
