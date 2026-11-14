@@ -46,15 +46,15 @@ class UploadScreen : Screen {
         var thumbnailBitmap by remember { mutableStateOf<ImageBitmap?>(null) }
 
         val launchVideoPicker = rememberVideoPicker { path ->
-          videoPath = path
+        videoPath = path
     
         // Android پر native thumbnail نکالیں
         if (path.startsWith("content://")) {
         // Android-specific: context کے ساتھ
         val context = LocalContext.current
         kotlinx.coroutines.GlobalScope.launch(Dispatchers.IO) {
-            val thumb = extractVideoThumbnailAndroid(context, path)
-            thumbnailBitmap = thumb
+        val thumb = extractVideoThumbnailAndroid(context, path)
+        thumbnailBitmap = thumb
         }
     } else {
         // iOS/Desktop: common function
