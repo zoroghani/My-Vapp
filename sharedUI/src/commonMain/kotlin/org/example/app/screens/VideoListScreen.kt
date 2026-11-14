@@ -60,7 +60,9 @@ class VideoListScreen : Screen {
                         )
                     },
                     actions = {
-                        IconButton(onClick = { /* سرچ اسکرین پر جائیں */ }) {
+                        IconButton(onClick = {
+                           navigator.push(SearchScreen())
+                        }) {
                             Icon(
                                 imageVector = Feather.Search,
                                 contentDescription = "Search",
