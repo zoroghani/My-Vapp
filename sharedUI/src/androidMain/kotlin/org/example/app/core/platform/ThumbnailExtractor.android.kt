@@ -8,27 +8,20 @@ import androidx.compose.ui.graphics.asImageBitmap
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-// Android-specific: Context کے ساتھ
-suspend fun extractVideoThumbnailAndroid(
-    context: Context,
-    videoPath: String
-): ImageBitmap? = withContext(Dispatchers.IO) {
+// یہ فنکشن Android کے لیے خاص ہے اور Context لیتا ہے
+suspend fun extractVideoThumbnailAndroid(context: Context, videoPath: String): ImageBitmap? = withContext(Dispatchers.IO) {
     try {
         val retriever = MediaMetadataRetriever()
-        
         if (videoPath.startsWith("content://")) {
             retriever.setDataSource(context, Uri.parse(videoPath))
         } else {
             retriever.setDataSource(videoPath)
         }
         
-        // پہلا فریم (1,000,000 microseconds = 1 second)
-        val frame = retriever.getFrameAtTime(
-            1_000_000,
-            MediaMetadataRetriever.OPTION_CLOSEST_SYNC
-        )
-        
+        // 1 سیکنڈ (1,000,000 مائیکرو سیکنڈ) پر فریم لیں
+        val frame = retriever.getFrameAtTime(1_000_000, MediaMetadataRetriever.OPTION_CLOSEST_SYNC)
         retriever.release()
+        
         frame?.asImageBitmap()
     } catch (e: Exception) {
         e.printStackTrace()
@@ -36,7 +29,7 @@ suspend fun extractVideoThumbnailAndroid(
     }
 }
 
-// Common expect function کے لیے (Context کے بغیر - Desktop/iOS کے لیے)
+// Common expect function کے لیے (فی الحال Android پر یہ استعمال نہیں ہوگا)
 actual suspend fun extractVideoThumbnail(videoPath: String): ImageBitmap? {
-    return null // Android پر Android-specific version استعمال کریں
+    return null
 }
