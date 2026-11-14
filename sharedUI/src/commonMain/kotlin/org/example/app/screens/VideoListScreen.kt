@@ -6,6 +6,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -24,18 +26,13 @@ import io.github.vinceglb.filekit.compose.rememberFilePickerLauncher
 import io.github.vinceglb.filekit.core.PickerType
 import org.example.app.DummyVideo
 import org.example.app.dummyVideos
-   import br.com.devsrsouza.compose.icons.feather.Feather
-
-// 👇 composeIcons کے imports (اگر آپ کی لائبریری کا پیکج تھوڑا مختلف ہے تو IDE خود ٹھیک کر دے گا)
-import com.devicons.compose.feather.Feather
 
 class VideoListScreen : Screen {
     @Composable
     override fun Content() {
         val navigator = LocalNavigator.currentOrThrow
-        var selectedTab by remember { mutableStateOf(0) } // Bottom Nav کے لیے اسٹیٹ
+        var selectedTab by remember { mutableStateOf(0) }
 
-        // فائل پکر لانچر
         val picker = rememberFilePickerLauncher(
             type = PickerType.Video,
             title = "ویڈیو منتخب کریں"
@@ -47,7 +44,6 @@ class VideoListScreen : Screen {
         }
 
         Scaffold(
-            // 1️⃣ ٹاپ بار: لوگو + سرچ + نوٹیفکیشن
             topBar = {
                 TopAppBar(
                     title = {
@@ -60,69 +56,50 @@ class VideoListScreen : Screen {
                         )
                     },
                     actions = {
-                        IconButton(onClick = {
-                           navigator.push(SearchScreen())
-                        }) {
-                            Icon(
-                                imageVector = Feather.Search,
-                                contentDescription = "Search",
-                                tint = Color(0xFF1F2937)
-                            )
+                        IconButton(onClick = { navigator.push(SearchScreen()) }) {
+                            Icon(Icons.Default.Search, contentDescription = "Search", tint = Color(0xFF1F2937))
                         }
-                        IconButton(onClick = { /* نوٹیفکیشن اسکرین پر جائیں */ }) {
-                            Icon(
-                                imageVector = Feather.Bell,
-                                contentDescription = "Notifications",
-                                tint = Color(0xFF1F2937)
-                            )
+                        IconButton(onClick = { /* Notifications */ }) {
+                            Icon(Icons.Default.Notifications, contentDescription = "Notifications", tint = Color(0xFF1F2937))
                         }
                     },
-                    colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = Color(0xFFE8EAF6).copy(alpha = 0.8f)
-                    )
+                    colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFFE8EAF6).copy(alpha = 0.9f))
                 )
             },
-            // 2️⃣ بوٹم نیویگیشن بار
             bottomBar = {
                 NavigationBar(
                     containerColor = Color.White.copy(alpha = 0.8f),
                     tonalElevation = 0.dp
                 ) {
                     NavigationBarItem(
-                        icon = { Icon(Feather.Home, contentDescription = "Home") },
+                        icon = { Icon(Icons.Default.Home, contentDescription = "Home") },
                         label = { Text("Home", fontSize = 10.sp) },
                         selected = selectedTab == 0,
                         onClick = { selectedTab = 0 }
                     )
                     NavigationBarItem(
-                        icon = { Icon(Feather.Video, contentDescription = "Reels") },
+                        icon = { Icon(Icons.Default.PlayCircle, contentDescription = "Reels") },
                         label = { Text("Reels", fontSize = 10.sp) },
                         selected = selectedTab == 1,
                         onClick = { selectedTab = 1 }
                     )
                     NavigationBarItem(
-                        icon = { 
-                            Icon(
-                                Feather.Plus, 
-                                contentDescription = "Add",
-                                modifier = Modifier.size(28.dp) // تھوڑا بڑا تاکہ نمایاں ہو
-                            ) 
-                        },
+                        icon = { Icon(Icons.Default.Add, contentDescription = "Add", modifier = Modifier.size(28.dp)) },
                         label = { },
                         selected = false,
                         onClick = { 
                             selectedTab = 2
-                            picker.launch() // 👈 یہاں اپ لوڈ پکر کھلے گا
+                            picker.launch() 
                         }
                     )
                     NavigationBarItem(
-                        icon = { Icon(Feather.Mail, contentDescription = "Inbox") },
+                        icon = { Icon(Icons.Default.Mail, contentDescription = "Inbox") },
                         label = { Text("Inbox", fontSize = 10.sp) },
                         selected = selectedTab == 3,
                         onClick = { selectedTab = 3 }
                     )
                     NavigationBarItem(
-                        icon = { Icon(Feather.User, contentDescription = "Profile") },
+                        icon = { Icon(Icons.Default.Person, contentDescription = "Profile") },
                         label = { Text("Profile", fontSize = 10.sp) },
                         selected = selectedTab == 4,
                         onClick = { selectedTab = 4 }
