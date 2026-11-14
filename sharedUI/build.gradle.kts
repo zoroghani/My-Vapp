@@ -50,7 +50,6 @@ kotlin {
             implementation(libs.voyager.navigator)
             implementation(libs.voyager.screenModel)
             implementation(libs.filekit.compose)
-            implementation(libs.compose.icons.feather)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
