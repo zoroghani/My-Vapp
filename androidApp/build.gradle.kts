@@ -12,6 +12,7 @@ kotlin {
 }
 dependencies {
     implementation(project(":sharedUI"))
+    implementation("io.github.vinceglb:filekit-compose:0.8.8")
     implementation(libs.androidx.activity.compose)
     implementation(libs.compose.uiToolingPreview)
     implementation("androidx.media3:media3-exoplayer:1.3.1")
