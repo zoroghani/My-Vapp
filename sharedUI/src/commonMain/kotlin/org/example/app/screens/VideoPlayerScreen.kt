@@ -2,7 +2,6 @@ package org.example.app.screens
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -15,7 +14,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
@@ -27,8 +25,8 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.platform.LocalContext
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
@@ -47,6 +45,9 @@ class VideoPlayerScreen(
         var commentText by remember { mutableStateOf("") }
         var thumbnail by remember { mutableStateOf<ImageBitmap?>(null) }
 
+        // ✅ ٹھیک کیا گیا: LocalContext.current کو باہر نکال لیا گیا ہے
+        val context = LocalContext.current
+
         // ویڈیو سے تھمب نیل نکالیں
         LaunchedEffect(videoUrl) {
             if (!videoUrl.startsWith("http")) {
@@ -54,9 +55,9 @@ class VideoPlayerScreen(
             }
         }
 
-        // ExoPlayer
+        // ✅ اب context variable استعمال ہو رہا ہے، جو کہ Composable invocation نہیں ہے
         val exoPlayer = remember {
-            ExoPlayer.Builder(androidx.compose.ui.platform.LocalContext.current).build().apply {
+            ExoPlayer.Builder(context).build().apply {
                 setMediaItem(MediaItem.fromUri(videoUrl))
                 prepare()
                 playWhenReady = true
@@ -81,8 +82,8 @@ class VideoPlayerScreen(
             ) {
                 // 1️⃣ ویڈیو پلئر
                 AndroidView(
-                    factory = { context ->
-                        PlayerView(context).apply {
+                    factory = { ctx ->
+                        PlayerView(ctx).apply {
                             player = exoPlayer
                             useController = true
                             resizeMode = androidx.media3.ui.AspectRatioFrameLayout.RESIZE_MODE_FIT
