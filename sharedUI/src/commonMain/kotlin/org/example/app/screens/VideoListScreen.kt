@@ -95,7 +95,10 @@ class VideoListScreen : Screen {
                         icon = { Icon(Icons.Default.Person, contentDescription = "Profile") },
                         label = { Text("Profile", fontSize = 10.sp) },
                         selected = selectedTab == 4,
-                        onClick = { selectedTab = 4 }
+                        onClick = { 
+                          selectedTab = 4
+                          navigator.push(ProfileScreen())
+                       }
                     )
                 }
             },
