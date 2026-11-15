@@ -1,14 +1,18 @@
 package org.example.app.screens
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
@@ -54,12 +58,18 @@ fun SettingsScreen() {
     var bio by remember { mutableStateOf("Video creator and tech enthusiast.") }
     var password by remember { mutableStateOf("") }
 
-    Column(modifier = Modifier.fillMaxSize().padding(32.dp).verticalScroll(rememberScrollState())) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(32.dp)
+            .verticalScroll(rememberScrollState())
+    ) {
         Text("Account Settings", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = Color(0xFF1A1A1A))
         Spacer(modifier = Modifier.height(24.dp))
 
         OutlinedTextField(
-            value = name, onValueChange = { name = it },
+            value = name,
+            onValueChange = { name = it },
             label = { Text("Full Name") },
             modifier = Modifier.fillMaxWidth(0.6f),
             singleLine = true
@@ -67,14 +77,16 @@ fun SettingsScreen() {
         Spacer(modifier = Modifier.height(16.dp))
 
         OutlinedTextField(
-            value = bio, onValueChange = { bio = it },
+            value = bio,
+            onValueChange = { bio = it },
             label = { Text("About / Bio") },
             modifier = Modifier.fillMaxWidth(0.6f).height(100.dp)
         )
         Spacer(modifier = Modifier.height(16.dp))
 
         OutlinedTextField(
-            value = password, onValueChange = { password = it },
+            value = password,
+            onValueChange = { password = it },
             label = { Text("New Password") },
             modifier = Modifier.fillMaxWidth(0.6f),
             singleLine = true,
@@ -82,7 +94,10 @@ fun SettingsScreen() {
         )
         Spacer(modifier = Modifier.height(24.dp))
 
-        Button(onClick = { /* Save logic */ }, shape = RoundedCornerShape(8.dp)) {
+        Button(
+            onClick = { /* Save logic */ },
+            shape = RoundedCornerShape(8.dp)
+        ) {
             Text("Save Changes")
         }
     }
