@@ -1,7 +1,6 @@
 package org.example.app.screens
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -26,21 +25,31 @@ class VideoListScreen : Screen {
     override fun Content() {
         val navigator = LocalNavigator.currentOrThrow
         var selectedTab by remember { mutableStateOf(0) }
+        var isDarkMode by remember { mutableStateOf(false) }
 
-        // ✅ Adaptive breakpoint: 840dp سے زیادہ = ڈیسکٹاپ
         BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
             val isDesktop = maxWidth >= 840.dp
 
             if (isDesktop) {
-                DesktopLayout(selectedTab, onTabChange = { selectedTab = it }, navigator)
+                DesktopLayout(
+                    selectedTab = selectedTab,
+                    onTabChange = { selectedTab = it },
+                    navigator = navigator,
+                    isDarkMode = isDarkMode,
+                    onDarkModeToggle = { isDarkMode = !isDarkMode }
+                )
             } else {
-                MobileLayout(selectedTab, onTabChange = { selectedTab = it }, navigator)
+                MobileLayout(
+                    selectedTab = selectedTab,
+                    onTabChange = { selectedTab = it },
+                    navigator = navigator
+                )
             }
         }
     }
 }
 
-// ---------------- موبائل لے آؤٹ ----------------
+// ---------------- موبائل لے آؤٹ (کوئی تبدیلی نہیں) ----------------
 @Composable
 private fun MobileLayout(
     selectedTab: Int,
@@ -64,94 +73,91 @@ private fun MobileLayout(
         },
         bottomBar = {
             NavigationBar(containerColor = Color.White.copy(alpha = 0.8f), tonalElevation = 0.dp) {
-                NavigationBarItem(
-                    icon = { Icon(Icons.Default.Home, contentDescription = "Home") },
-                    label = { Text("Home", fontSize = 10.sp) },
-                    selected = selectedTab == 0, onClick = { onTabChange(0) }
-                )
-                NavigationBarItem(
-                    icon = { Icon(Icons.Default.PlayCircle, contentDescription = "Reels") },
-                    label = { Text("Reels", fontSize = 10.sp) },
-                    selected = selectedTab == 1, onClick = { onTabChange(1) }
-                )
-                NavigationBarItem(
-                    icon = { Icon(Icons.Default.Add, contentDescription = "Add", modifier = Modifier.size(28.dp)) },
-                    label = { }, selected = false,
-                    onClick = { onTabChange(2); navigator.push(UploadScreen()) }
-                )
-                NavigationBarItem(
-                    icon = { Icon(Icons.Default.Mail, contentDescription = "Inbox") },
-                    label = { Text("Inbox", fontSize = 10.sp) },
-                    selected = selectedTab == 3, onClick = { onTabChange(3) }
-                )
-                NavigationBarItem(
-                    icon = { Icon(Icons.Default.Person, contentDescription = "Profile") },
-                    label = { Text("Profile", fontSize = 10.sp) },
-                    selected = selectedTab == 4, onClick = { onTabChange(4); navigator.push(ProfileScreen()) }
-                )
+                NavigationBarItem(icon = { Icon(Icons.Default.Home, contentDescription = "Home") }, label = { Text("Home", fontSize = 10.sp) }, selected = selectedTab == 0, onClick = { onTabChange(0) })
+                NavigationBarItem(icon = { Icon(Icons.Default.PlayCircle, contentDescription = "Reels") }, label = { Text("Reels", fontSize = 10.sp) }, selected = selectedTab == 1, onClick = { onTabChange(1) })
+                NavigationBarItem(icon = { Icon(Icons.Default.Add, contentDescription = "Add", modifier = Modifier.size(28.dp)) }, label = { }, selected = false, onClick = { onTabChange(2); navigator.push(UploadScreen()) })
+                NavigationBarItem(icon = { Icon(Icons.Default.Mail, contentDescription = "Inbox") }, label = { Text("Inbox", fontSize = 10.sp) }, selected = selectedTab == 3, onClick = { onTabChange(3) })
+                NavigationBarItem(icon = { Icon(Icons.Default.Person, contentDescription = "Profile") }, label = { Text("Profile", fontSize = 10.sp) }, selected = selectedTab == 4, onClick = { onTabChange(4); navigator.push(ProfileScreen()) })
             }
         },
         containerColor = Color(0xFFE8EAF6)
     ) { padding ->
-        VideoGrid(padding = padding, navigator = navigator)
+        VideoGrid(padding = padding, navigator = navigator, twoColumns = false)
     }
 }
 
-// ---------------- ڈیسکٹاپ لے آؤٹ ----------------
+// ---------------- ڈیسکٹاپ لے آؤٹ (اپ ڈیٹ شدہ) ----------------
 @Composable
 private fun DesktopLayout(
     selectedTab: Int,
     onTabChange: (Int) -> Unit,
-    navigator: cafe.adriel.voyager.navigator.Navigator
+    navigator: cafe.adriel.voyager.navigator.Navigator,
+    isDarkMode: Boolean,
+    onDarkModeToggle: () -> Unit
 ) {
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text("My Video App", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Color(0xFF1A1A1A))
-                        Spacer(modifier = Modifier.width(24.dp))
-                        OutlinedTextField(
-                            value = "", onValueChange = { },
-                            placeholder = { Text("Search accounts", color = Color.Gray, fontSize = 14.sp) },
-                            leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = Color.Gray) },
-                            modifier = Modifier.width(320.dp).height(44.dp),
-                            singleLine = true,
-                            shape = RoundedCornerShape(24.dp)
-                        )
+    // ڈارک موڈ کے لیے تھیم کا اطلاق
+    val colorScheme = if (isDarkMode) darkColorScheme() else lightColorScheme()
+    
+    MaterialTheme(colorScheme = colorScheme) {
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    title = {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text("My Video App", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
+                            Spacer(modifier = Modifier.width(24.dp))
+                            OutlinedTextField(
+                                value = "", onValueChange = { },
+                                placeholder = { Text("Search accounts", color = Color.Gray, fontSize = 14.sp) },
+                                leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = Color.Gray) },
+                                modifier = Modifier.width(320.dp).height(44.dp),
+                                singleLine = true,
+                                shape = RoundedCornerShape(24.dp)
+                            )
+                        }
+                    },
+                    actions = {
+                        TextButton(onClick = { navigator.push(UploadScreen()) }) { Text("Upload", color = MaterialTheme.colorScheme.onBackground) }
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Button(onClick = { }, shape = RoundedCornerShape(24.dp), colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF4757))) { 
+                            Text("Log in", color = Color.White) 
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background)
+                )
+            },
+            containerColor = MaterialTheme.colorScheme.background
+        ) { padding ->
+            Row(modifier = Modifier.fillMaxSize().padding(padding)) {
+                // سائیڈ مینو
+                NavigationRail(
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    header = { Icon(Icons.Default.Home, contentDescription = null, tint = AccentColor, modifier = Modifier.padding(bottom = 16.dp)) }
+                ) {
+                    RailItem(Icons.Default.Home, "Home", selectedTab == 0) { onTabChange(0) }
+                    RailItem(Icons.Default.PlayCircle, "Clips", selectedTab == 1) { onTabChange(1) }
+                    RailItem(Icons.Default.Mail, "Inbox", selectedTab == 2) { onTabChange(2) }
+                    RailItem(Icons.Default.Person, "My Profile", selectedTab == 3) { onTabChange(3) }
+                    RailItem(Icons.Default.Download, "Downloads", selectedTab == 4) { onTabChange(4) }
+                    RailItem(Icons.Default.DarkMode, "Dark Mode", selectedTab == 5) { onDarkModeToggle() } // ٹوگل ایکشن
+                    RailItem(Icons.Default.Settings, "Settings", selectedTab == 6) { onTabChange(6) }
+                    RailItem(Icons.Default.Help, "Help Center", selectedTab == 7) { onTabChange(7) }
+                }
+                
+                // مرکزی مواد (Tab کے مطابق بدلے گا)
+                Box(modifier = Modifier.weight(1f).fillMaxHeight().padding(16.dp)) {
+                    when (selectedTab) {
+                        0 -> VideoGrid(padding = PaddingValues(0.dp), navigator = navigator, twoColumns = true)
+                        1 -> ClipsScreen()
+                        2 -> InboxScreen()
+                        3 -> ChannelScreen() // My Profile سائیڈ مینو کے اندر ہی کھلے گی
+                        4 -> DownloadsScreen()
+                        5 -> VideoGrid(padding = PaddingValues(0.dp), navigator = navigator, twoColumns = true) // Dark mode کا اثر دکھانے کے لیے ہوم گرڈ ہی رکھا
+                        6 -> SettingsScreen()
+                        7 -> HelpCenterScreen()
                     }
-                },
-                actions = {
-                    TextButton(onClick = { navigator.push(UploadScreen()) }) { Text("Upload", color = Color(0xFF1A1A1A)) }
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Button(
-                        onClick = { },
-                        shape = RoundedCornerShape(24.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF4757))
-                    ) { Text("Log in", color = Color.White) }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
-            )
-        },
-        containerColor = Color.White
-    ) { padding ->
-        Row(modifier = Modifier.fillMaxSize().padding(padding)) {
-            // سائیڈ مینو
-            NavigationRail(
-                containerColor = Color.White,
-                header = { Icon(Icons.Default.Home, contentDescription = null, tint = AccentColor) }
-            ) {
-                RailItem(Icons.Default.Home, "Home", selectedTab == 0) { onTabChange(0) }
-                RailItem(Icons.Default.PlayCircle, "Clips", selectedTab == 1) { onTabChange(1) }
-                RailItem(Icons.Default.Mail, "Inbox", selectedTab == 2) { onTabChange(2) }
-                RailItem(Icons.Default.Person, "My Profile", selectedTab == 3) { onTabChange(3); navigator.push(ChannelScreen()) }
-                RailItem(Icons.Default.Download, "Download", selectedTab == 4) { onTabChange(4) }
-                RailItem(Icons.Default.DarkMode, "Dark Mode", selectedTab == 5) { onTabChange(5) }
-                RailItem(Icons.Default.Settings, "Settings", selectedTab == 6) { onTabChange(6) }
-                RailItem(Icons.Default.Help, "Help Center", selectedTab == 7) { onTabChange(7) }
+                }
             }
-            // مرکزی مواد
-            VideoGrid(padding = PaddingValues(0.dp), navigator = navigator, twoColumns = true)
         }
     }
 }
@@ -184,7 +190,6 @@ private fun VideoGrid(padding: PaddingValues, navigator: cafe.adriel.voyager.nav
                             }
                         }
                     }
-                    // اگر طاق تعداد ہو تو خالی جگہ
                     if (row.size == 1) Spacer(modifier = Modifier.weight(1f))
                 }
             }
