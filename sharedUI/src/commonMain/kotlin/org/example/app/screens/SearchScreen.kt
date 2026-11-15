@@ -87,8 +87,11 @@ class SearchScreen : Screen {
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     items(filteredVideos) { video ->
-                        VideoCard(video = video) {
-                            navigator.push(VideoPlayerScreen(video.videoUrl, video.title))
+                        VideoCard(
+                          video = video,
+                          onVideoClick = { navigator.push(VideoPlayerScreen(video.videoUrl, video.title)) },
+                          onChannelClick = { navigator.push(ChannelScreen()) }
+                        )
                         }
                     }
                 }
