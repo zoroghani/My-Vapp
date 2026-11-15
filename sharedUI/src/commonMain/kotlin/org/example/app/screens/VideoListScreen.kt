@@ -186,9 +186,11 @@ private fun VideoGrid(padding: PaddingValues, navigator: cafe.adriel.voyager.nav
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     row.forEach { video ->
                         Box(modifier = Modifier.weight(1f)) {
-                            VideoCard(video = video) {
-                                navigator.push(VideoPlayerScreen(video.videoUrl, video.title))
-                            }
+                            VideoCard(
+                                video = video,
+                                onVideoClick = { navigator.push(VideoPlayerScreen(video.videoUrl, video.title)) },
+                                onChannelClick = { navigator.push(ChannelScreen()) }
+                            )
                         }
                     }
                     if (row.size == 1) Spacer(modifier = Modifier.weight(1f))
@@ -196,9 +198,11 @@ private fun VideoGrid(padding: PaddingValues, navigator: cafe.adriel.voyager.nav
             }
         } else {
             items(dummyVideos) { video ->
-                VideoCard(video = video) {
-                    navigator.push(VideoPlayerScreen(video.videoUrl, video.title))
-                }
+                VideoCard(
+                    video = video,
+                    onVideoClick = { navigator.push(VideoPlayerScreen(video.videoUrl, video.title)) },
+                    onChannelClick = { navigator.push(ChannelScreen()) }
+                )
             }
         }
     }
