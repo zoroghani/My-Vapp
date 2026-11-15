@@ -5,7 +5,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -16,6 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -26,34 +26,20 @@ import cafe.adriel.voyager.navigator.currentOrThrow
 import coil3.compose.AsyncImage
 
 private val AccentColor = Color(0xFFFF4757)
-private val HighlightRowColor = Color(0xFFEEF0F5)
 
 class ProfileScreen : Screen {
     @Composable
     override fun Content() {
         val navigator = LocalNavigator.currentOrThrow
-        
         var isDarkMode by remember { mutableStateOf(false) }
-        var location by remember { mutableStateOf("United States") }
-        
+
         Scaffold(
             topBar = {
                 TopAppBar(
-                    title = {
-                        Text(
-                            text = "Profile",
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color(0xFF1A1A1A)
-                        )
-                    },
+                    title = { Text("Profile", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Color(0xFF1A1A1A)) },
                     navigationIcon = {
                         IconButton(onClick = { navigator.pop() }) {
-                            Icon(
-                                imageVector = Icons.Filled.ArrowBack, // ✅ اب یہ 100% کام کرے گا
-                                contentDescription = "Back",
-                                tint = Color(0xFF1A1A1A)
-                            )
+                            Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = Color(0xFF1A1A1A))
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
@@ -67,7 +53,7 @@ class ProfileScreen : Screen {
                     .padding(padding)
                     .verticalScroll(rememberScrollState())
             ) {
-                // 1️⃣ آواتار + نام
+                // آواتار + نام
                 Column(
                     modifier = Modifier.fillMaxWidth().padding(vertical = 24.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
@@ -91,40 +77,18 @@ class ProfileScreen : Screen {
                         }
                     }
                     Spacer(modifier = Modifier.height(12.dp))
-                    Text(text = "Andrew Ainsley", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color(0xFF1A1A1A))
+                    Text("Andrew Ainsley", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color(0xFF1A1A1A))
                 }
-                
-                // 2️⃣ فہرست
+
+                // فہرست (سب ایک جیسی)
                 Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
-                    ProfileRow(
-                        icon = Icons.Default.PlayCircle,
-                        label = "My Profile",
-                        onClick = { navigator.push(ChannelScreen()) }
-                    )
-                    
-                    DarkModeRow(
-                        isDarkMode = isDarkMode,
-                        onToggle = { isDarkMode = !isDarkMode }
-                    )
-                    
-                    LocationRow(
-                        location = location,
-                        onClick = { }
-                    )
-                    
-                    ProfileRow(
-                        icon = Icons.Default.Settings,
-                        label = "Settings",
-                        onClick = { }
-                    )
-                    
-                    ProfileRow(
-                        icon = Icons.Outlined.Info, // ✅ درست آئیکن
-                        label = "Help Center",
-                        onClick = { }
-                    )
-                    
-                    LogoutRow(onClick = { })
+                    ProfileRow(Icons.Default.PlayCircle, "My Profile") { navigator.push(ChannelScreen()) }
+                    ProfileRow(Icons.Default.Download, "Downloads") { /* Downloads screen */ }
+                    DarkModeRow(isDarkMode) { isDarkMode = !isDarkMode }
+                    ProfileRow(Icons.Default.LocationOn, "Location", value = "United States") { /* Location screen */ }
+                    ProfileRow(Icons.Default.Settings, "Settings") { }
+                    ProfileRow(Icons.Outlined.Info, "Help Center") { }
+                    LogoutRow { }
                 }
                 Spacer(modifier = Modifier.height(24.dp))
             }
@@ -132,24 +96,32 @@ class ProfileScreen : Screen {
     }
 }
 
-// --- Helper Composables ---
-
+// عام قطار — اب optional value کے ساتھ (Location بھی اسی کو استعمال کرتا ہے)
 @Composable
-private fun ProfileRow(icon: androidx.compose.ui.graphics.vector.ImageVector, label: String, onClick: () -> Unit) {
-    Row(modifier = Modifier.fillMaxWidth().clickable(onClick = onClick).padding(vertical = 16.dp), verticalAlignment = Alignment.CenterVertically) {
-        Icon(imageVector = icon, contentDescription = null, tint = Color(0xFF1A1A1A), modifier = Modifier.size(24.dp))
+private fun ProfileRow(icon: ImageVector, label: String, value: String? = null, onClick: () -> Unit) {
+    Row(
+        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick).padding(vertical = 16.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(icon, contentDescription = null, tint = Color(0xFF1A1A1A), modifier = Modifier.size(24.dp))
         Spacer(modifier = Modifier.width(16.dp))
-        Text(text = label, fontSize = 16.sp, color = Color(0xFF1A1A1A), modifier = Modifier.weight(1f))
+        Text(label, fontSize = 16.sp, color = Color(0xFF1A1A1A), modifier = Modifier.weight(1f))
+        if (value != null) {
+            Text(value, fontSize = 14.sp, color = Color(0xFF999999), modifier = Modifier.padding(end = 8.dp))
+        }
         Icon(Icons.Default.ChevronRight, contentDescription = null, tint = Color(0xFF999999), modifier = Modifier.size(20.dp))
     }
 }
 
 @Composable
 private fun DarkModeRow(isDarkMode: Boolean, onToggle: () -> Unit) {
-    Row(modifier = Modifier.fillMaxWidth().clickable(onClick = onToggle).padding(vertical = 16.dp), verticalAlignment = Alignment.CenterVertically) {
+    Row(
+        modifier = Modifier.fillMaxWidth().clickable(onClick = onToggle).padding(vertical = 16.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
         Icon(Icons.Default.Visibility, contentDescription = null, tint = Color(0xFF1A1A1A), modifier = Modifier.size(24.dp))
         Spacer(modifier = Modifier.width(16.dp))
-        Text(text = "Dark Mode", fontSize = 16.sp, color = Color(0xFF1A1A1A), modifier = Modifier.weight(1f))
+        Text("Dark Mode", fontSize = 16.sp, color = Color(0xFF1A1A1A), modifier = Modifier.weight(1f))
         Switch(
             checked = isDarkMode,
             onCheckedChange = { onToggle() },
@@ -159,24 +131,13 @@ private fun DarkModeRow(isDarkMode: Boolean, onToggle: () -> Unit) {
 }
 
 @Composable
-private fun LocationRow(location: String, onClick: () -> Unit) {
+private fun LogoutRow(onClick: () -> Unit) {
     Row(
-        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick).background(color = HighlightRowColor, shape = RoundedCornerShape(8.dp)).padding(horizontal = 16.dp, vertical = 16.dp),
+        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick).padding(vertical = 16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(Icons.Default.LocationOn, contentDescription = null, tint = Color(0xFF6688CC), modifier = Modifier.size(24.dp))
-        Spacer(modifier = Modifier.width(16.dp))
-        Text(text = "Location", fontSize = 16.sp, fontWeight = FontWeight.Medium, color = Color(0xFF1A1A1A), modifier = Modifier.weight(1f))
-        Text(text = location, fontSize = 14.sp, color = Color(0xFF6688CC), modifier = Modifier.padding(end = 8.dp))
-        Icon(Icons.Default.ChevronRight, contentDescription = null, tint = Color(0xFF6688CC), modifier = Modifier.size(20.dp))
-    }
-}
-
-@Composable
-private fun LogoutRow(onClick: () -> Unit) {
-    Row(modifier = Modifier.fillMaxWidth().clickable(onClick = onClick).padding(vertical = 16.dp), verticalAlignment = Alignment.CenterVertically) {
         Icon(Icons.Default.Logout, contentDescription = null, tint = AccentColor, modifier = Modifier.size(24.dp))
         Spacer(modifier = Modifier.width(16.dp))
-        Text(text = "Logout", fontSize = 16.sp, fontWeight = FontWeight.Medium, color = AccentColor)
+        Text("Logout", fontSize = 16.sp, fontWeight = FontWeight.Medium, color = AccentColor)
     }
 }
