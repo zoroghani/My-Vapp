@@ -8,7 +8,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.AutoMirrored.Filled.ArrowBack
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.*
@@ -51,7 +50,7 @@ class ProfileScreen : Screen {
                     navigationIcon = {
                         IconButton(onClick = { navigator.pop() }) {
                             Icon(
-                                imageVector = ArrowBack, // ✅ درست آئیکن
+                                imageVector = Icons.Filled.ArrowBack, // ✅ اب یہ 100% کام کرے گا
                                 contentDescription = "Back",
                                 tint = Color(0xFF1A1A1A)
                             )
@@ -100,7 +99,7 @@ class ProfileScreen : Screen {
                     ProfileRow(
                         icon = Icons.Default.PlayCircle,
                         label = "My Profile",
-                        onClick = { navigator.push(ChannelScreen()) } // ✅ اب یہ کام کرے گا
+                        onClick = { navigator.push(ChannelScreen()) }
                     )
                     
                     DarkModeRow(
