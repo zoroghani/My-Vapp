@@ -104,8 +104,12 @@ class ChannelScreen : Screen {
                 if (selectedTab == 0) {
                     Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp)) {
                         dummyVideos.forEach { video ->
-                            VideoCard(video = video, duration = "56:44") {
-                                navigator.push(VideoPlayerScreen(video.videoUrl, video.title))
+                            VideoCard(
+                              video = video, 
+                              duration = "56:44",
+                              onVideoClick = { navigator.push(VideoPlayerScreen(video.videoUrl, video.title)) },
+                              onChannelClick = { /* Already on channel screen, do nothing */ }
+                            )
                             }
                             Spacer(modifier = Modifier.height(12.dp))
                         }
