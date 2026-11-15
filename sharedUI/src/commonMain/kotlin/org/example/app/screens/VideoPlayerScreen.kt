@@ -2,6 +2,7 @@ package org.example.app.screens
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -19,18 +20,18 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.viewinterop.AndroidView
-import androidx.media3.common.MediaItem
-import androidx.media3.exoplayer.ExoPlayer
-import androidx.media3.ui.PlayerView
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
 import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.platform.LocalContext
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.example.app.core.platform.extractVideoThumbnail
+import org.example.app.core.platform.NativeVideoPlayer
+
+private val AccentColor = Color(0xFFFF4757)
 
 class VideoPlayerScreen(
     private val videoUrl: String,
@@ -40,13 +41,23 @@ class VideoPlayerScreen(
     @Composable
     override fun Content() {
         val navigator = LocalNavigator.currentOrThrow
+        val scope = rememberCoroutineScope()
+        
         var isLiked by remember { mutableStateOf(false) }
         var isFollowed by remember { mutableStateOf(false) }
         var commentText by remember { mutableStateOf("") }
         var thumbnail by remember { mutableStateOf<ImageBitmap?>(null) }
-
-        // ✅ ٹھیک کیا گیا: LocalContext.current کو باہر نکال لیا گیا ہے
-        val context = LocalContext.current
+        
+        // Snackbar state
+        val snackbarHostState = remember { SnackbarHostState() }
+        var snackbarMessage by remember { mutableStateOf<String?>(null) }
+        
+        LaunchedEffect(snackbarMessage) {
+            snackbarMessage?.let { msg ->
+                snackbarHostState.showSnackbar(msg)
+                snackbarMessage = null
+            }
+        }
 
         // ویڈیو سے تھمب نیل نکالیں
         LaunchedEffect(videoUrl) {
@@ -55,24 +66,9 @@ class VideoPlayerScreen(
             }
         }
 
-        // ✅ اب context variable استعمال ہو رہا ہے، جو کہ Composable invocation نہیں ہے
-        val exoPlayer = remember {
-            ExoPlayer.Builder(context).build().apply {
-                setMediaItem(MediaItem.fromUri(videoUrl))
-                prepare()
-                playWhenReady = true
-            }
-        }
-
-        // جب سکرین بند ہو تو پلئر روکیں
-        DisposableEffect(Unit) {
-            onDispose {
-                exoPlayer.release()
-            }
-        }
-
         Scaffold(
-            containerColor = Color(0xFFF5F5F7)
+            containerColor = Color(0xFFF5F5F7),
+            snackbarHost = { SnackbarHost(snackbarHostState) }
         ) { padding ->
             Column(
                 modifier = Modifier
@@ -80,15 +76,9 @@ class VideoPlayerScreen(
                     .padding(padding)
                     .verticalScroll(rememberScrollState())
             ) {
-                // 1️⃣ ویڈیو پلئر
-                AndroidView(
-                    factory = { ctx ->
-                        PlayerView(ctx).apply {
-                            player = exoPlayer
-                            useController = true
-                            resizeMode = androidx.media3.ui.AspectRatioFrameLayout.RESIZE_MODE_FIT
-                        }
-                    },
+                // 1️⃣ ویڈیو پلئر (Native - Android + Desktop)
+                NativeVideoPlayer(
+                    videoUrl = videoUrl,
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(240.dp)
@@ -115,98 +105,121 @@ class VideoPlayerScreen(
                     )
                 }
 
-                // 3️⃣ Follow بٹن + Like/Share/Download
+                // 3️⃣ چینل کی معلومات (کلکیبل → ChannelScreen)
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { navigator.push(ChannelScreen()) }
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    // چینل لوگو
+                    Box(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(CircleShape)
+                            .background(Color(0xFF008060)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text("Z", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                    }
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = "World of Music",
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF1A1A1A)
+                        )
+                        Text(
+                            text = "1.2M subscribers",
+                            fontSize = 12.sp,
+                            color = Color(0xFF666666)
+                        )
+                    }
+                    // Follow بٹن
+                    Button(
+                        onClick = { isFollowed = !isFollowed },
+                        shape = RoundedCornerShape(20.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = if (isFollowed) Color(0xFFE0E0E0) else AccentColor,
+                            contentColor = if (isFollowed) Color(0xFF1A1A1A) else Color.White
+                        ),
+                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+                    ) {
+                        Text(
+                            text = if (isFollowed) "Following" else "Follow",
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // 4️⃣ Like, Share, Download آئیکنز
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    // Follow بٹن
-                    Row(
+                    // Like
+                    IconButton(
+                        onClick = { isLiked = !isLiked },
                         modifier = Modifier
-                            .clip(RoundedCornerShape(24.dp))
-                            .background(Color(0xFF1A1A1A))
-                            .clickable { isFollowed = !isFollowed }
-                            .padding(horizontal = 16.dp, vertical = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                            .size(40.dp)
+                            .clip(CircleShape)
+                            .background(Color(0xFFF0F0F0))
                     ) {
-                        Box(
-                            modifier = Modifier
-                                .size(24.dp)
-                                .clip(CircleShape)
-                                .background(Color(0xFF008060)),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text("Z", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                        }
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = if (isFollowed) "FOLLOWING" else "FOLLOW",
-                            color = Color.White,
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Bold
+                        Icon(
+                            imageVector = if (isLiked) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                            contentDescription = "Like",
+                            tint = if (isLiked) Color(0xFFE53935) else Color(0xFF1A1A1A),
+                            modifier = Modifier.size(20.dp)
                         )
                     }
 
-                    // Like, Share, Download آئیکنز
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    // Share
+                    IconButton(
+                        onClick = {
+                            snackbarMessage = "Link copied to clipboard!"
+                        },
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(CircleShape)
+                            .background(Color(0xFFF0F0F0))
                     ) {
-                        // Like
-                        IconButton(
-                            onClick = { isLiked = !isLiked },
-                            modifier = Modifier
-                                .size(40.dp)
-                                .clip(CircleShape)
-                                .background(Color(0xFFF0F0F0))
-                        ) {
-                            Icon(
-                                imageVector = if (isLiked) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-                                contentDescription = "Like",
-                                tint = if (isLiked) Color(0xFFE53935) else Color(0xFF1A1A1A),
-                                modifier = Modifier.size(20.dp)
-                            )
-                        }
+                        Icon(
+                            imageVector = Icons.Default.Share,
+                            contentDescription = "Share",
+                            tint = Color(0xFF1A1A1A),
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
 
-                        // Share
-                        IconButton(
-                            onClick = { /* Share logic */ },
-                            modifier = Modifier
-                                .size(40.dp)
-                                .clip(CircleShape)
-                                .background(Color(0xFFF0F0F0))
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Share,
-                                contentDescription = "Share",
-                                tint = Color(0xFF1A1A1A),
-                                modifier = Modifier.size(20.dp)
-                            )
-                        }
-
-                        // Download
-                        IconButton(
-                            onClick = { /* Download logic */ },
-                            modifier = Modifier
-                                .size(40.dp)
-                                .clip(CircleShape)
-                                .background(Color(0xFFF0F0F0))
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Download,
-                                contentDescription = "Download",
-                                tint = Color(0xFF1A1A1A),
-                                modifier = Modifier.size(20.dp)
-                            )
-                        }
+                    // Download
+                    IconButton(
+                        onClick = {
+                            snackbarMessage = "Download started..."
+                        },
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(CircleShape)
+                            .background(Color(0xFFF0F0F0))
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Download,
+                            contentDescription = "Download",
+                            tint = Color(0xFF1A1A1A),
+                            modifier = Modifier.size(20.dp)
+                        )
                     }
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // 4️⃣ Comments سیکشن (گلاس کارڈ)
+                // 5️⃣ Comments سیکشن (گلاس کارڈ)
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -256,7 +269,7 @@ class VideoPlayerScreen(
 
                 Spacer(modifier = Modifier.height(20.dp))
 
-                // 5️⃣ Related ویڈیو (گلاس کارڈ)
+                // 6️⃣ Related ویڈیو (گلاس کارڈ)
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -270,7 +283,6 @@ class VideoPlayerScreen(
                     elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
                 ) {
                     Column {
-                        // Related ویڈیو تھمب نیل
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -285,7 +297,6 @@ class VideoPlayerScreen(
                                     contentScale = ContentScale.Crop
                                 )
                             }
-                            // Duration
                             Box(
                                 modifier = Modifier
                                     .align(Alignment.BottomEnd)
@@ -295,7 +306,6 @@ class VideoPlayerScreen(
                             ) {
                                 Text("1:26", color = Color.White, fontSize = 11.sp)
                             }
-                            // More options
                             Icon(
                                 imageVector = Icons.Default.MoreVert,
                                 contentDescription = "More",
