@@ -100,17 +100,16 @@ class ChannelScreen : Screen {
                         text = { Text("About", fontWeight = if (selectedTab == 1) FontWeight.Bold else FontWeight.Normal) })
                 }
 
-                // مواد — اب VideoCard استعمال ہوگا
+                // مواد
                 if (selectedTab == 0) {
                     Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp)) {
                         dummyVideos.forEach { video ->
                             VideoCard(
-                              video = video, 
-                              duration = "56:44",
-                              onVideoClick = { navigator.push(VideoPlayerScreen(video.videoUrl, video.title)) },
-                              onChannelClick = { /* Already on channel screen, do nothing */ }
+                                video = video,
+                                duration = "56:44",
+                                onVideoClick = { navigator.push(VideoPlayerScreen(video.videoUrl, video.title)) },
+                                onChannelClick = { /* Already on channel screen */ }
                             )
-                            }
                             Spacer(modifier = Modifier.height(12.dp))
                         }
                     }
