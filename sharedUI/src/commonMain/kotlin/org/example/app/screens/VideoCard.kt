@@ -30,12 +30,14 @@ fun VideoCard(
     Card(
         onClick = onVideoClick,
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.5f)),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
-        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.8f))
+        colors = CardDefaults.cardColors(
+            // ✅ تھیم کے مطابق سطح کا رنگ (لائٹ میں سفید، ڈارک میں گہرا سرمئی)
+            containerColor = MaterialTheme.colorScheme.surface
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.2f))
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
-            // تھمب نیل + duration بیج + ⋮
             Box(modifier = Modifier.fillMaxWidth().height(180.dp)) {
                 AsyncImage(
                     model = video.thumbnailUrl,
@@ -54,14 +56,12 @@ fun VideoCard(
                         Text(video.duration, color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.Medium)
                     }
                 }
-                IconButton(
-                    onClick = { },
-                    modifier = Modifier.align(Alignment.TopEnd).padding(4.dp)
-                ) {
+                // تصویر کے اوپر آئیکن ہمیشہ سفید رہے گا
+                IconButton(onClick = { }, modifier = Modifier.align(Alignment.TopEnd).padding(4.dp)) {
                     Icon(Icons.Default.MoreVert, contentDescription = "More", tint = Color.White)
                 }
             }
-            // آواتار + ٹائٹل + چینل + views/تاریخ
+            
             Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.Top) {
                 AsyncImage(
                     model = "https://picsum.photos/seed/channel/80/80",
@@ -75,18 +75,26 @@ fun VideoCard(
                         video.title,
                         style = MaterialTheme.typography.titleMedium,
                         maxLines = 2,
-                        color = Color(0xFF1F2937),
+                        color = MaterialTheme.colorScheme.onSurface, // ✅ تھیم ٹیکسٹ رنگ
                         fontWeight = FontWeight.Medium
                     )
                     Spacer(modifier = Modifier.height(4.dp))
-                    Text(video.channel, style = MaterialTheme.typography.bodyMedium, color = Color(0xFF4B5563))
+                    Text(
+                        video.channel, 
+                        style = MaterialTheme.typography.bodyMedium, 
+                        color = MaterialTheme.colorScheme.onSurfaceVariant // ✅ ثانوی ٹیکسٹ رنگ
+                    )
                     val meta = listOfNotNull(
                         video.views.takeIf { it.isNotEmpty() },
                         video.publishDate.takeIf { it.isNotEmpty() }
                     ).joinToString(" • ")
                     if (meta.isNotEmpty()) {
                         Spacer(modifier = Modifier.height(2.dp))
-                        Text(meta, style = MaterialTheme.typography.bodySmall, color = Color(0xFF4B5563))
+                        Text(
+                            meta, 
+                            style = MaterialTheme.typography.bodySmall, 
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     }
                 }
             }
