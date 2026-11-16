@@ -80,6 +80,7 @@ class ProfileScreen : Screen {
                 Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
                     ProfileRow(Icons.Default.PlayCircle, "My Profile") { navigator.push(ChannelScreen()) }
                     ProfileRow(Icons.Default.Download, "Downloads") { navigator.push(DownloadsPage()) }
+                    ProfileRow(Icons.Default.MonetizationOn, "Monetization") { navigator.push(MonetizationScreen()) }
                     DarkModeRow()
                     ProfileRow(Icons.Default.LocationOn, "Location", value = "United States") { navigator.push(LocationPage()) }
                     ProfileRow(Icons.Default.Settings, "Settings") { navigator.push(SettingsPage()) }
