@@ -180,10 +180,10 @@ private fun DesktopLayout(
                     }
                     Spacer(modifier = Modifier.width(8.dp))
                     Button(
-                        onClick = { },
+                        onClick = { navigator.push(AuthScreen()) },
                         shape = RoundedCornerShape(24.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
-                    ) {
+                  ) {
                         Text("Log in", color = MaterialTheme.colorScheme.onPrimary)
                     }
                 },
