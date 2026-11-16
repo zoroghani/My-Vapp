@@ -1,4 +1,4 @@
- org.example.app.screens
+org.example.app.screens
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
