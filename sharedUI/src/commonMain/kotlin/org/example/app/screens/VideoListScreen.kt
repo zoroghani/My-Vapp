@@ -1,9 +1,6 @@
 package org.example.app.screens
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -68,7 +65,7 @@ private fun MobileLayout(
                     }
                     IconButton(onClick = { navigator.push(NotificationsScreen()) }) {
                         Icon(Icons.Default.Notifications, contentDescription = "Notifications", tint = MaterialTheme.colorScheme.onSurface)
-                   }
+                    }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface)
             )
@@ -81,8 +78,8 @@ private fun MobileLayout(
             ) {
                 NavItem(Icons.Default.Home, "Home", selectedTab == 0) { onTabChange(0) }
                 NavItem(Icons.Default.PlayCircle, "Reels", selectedTab == 1) {
-                   onTabChange(1)
-                   navigator.push(ReelsScreen())
+                    onTabChange(1)
+                    navigator.push(ReelsScreen())
                 }
 
                 // ➕ Add بٹن (درمیان، ہمیشہ بڑا)
@@ -98,11 +95,12 @@ private fun MobileLayout(
                 )
 
                 NavItem(Icons.Default.Mail, "Inbox", selectedTab == 3) {
-                   onTabChange(3)
-                   navigator.push(InboxScreen())
+                    onTabChange(3)
+                    navigator.push(InboxScreen())
                 }
                 NavItem(Icons.Default.Person, "Profile", selectedTab == 4) {
-                    onTabChange(4); navigator.push(ProfileScreen())
+                    onTabChange(4)
+                    navigator.push(ProfileScreen())
                 }
             }
         },
@@ -112,7 +110,7 @@ private fun MobileLayout(
     }
 }
 
-// 👇 سلیکٹڈ ٹیب کا نیا انداز (تصویر کے مطابق)
+// 👇 سلیکٹڈ ٹیب کا نیا انداز
 @Composable
 private fun NavItem(
     icon: ImageVector,
@@ -125,10 +123,9 @@ private fun NavItem(
             Icon(
                 icon,
                 contentDescription = label,
-                modifier = Modifier.size(if (selected) 28.dp else 24.dp) // 👈 سلیکٹڈ پر بڑا
+                modifier = Modifier.size(if (selected) 28.dp else 24.dp)
             )
         },
-        // 👇 لیبل صرف سلیکٹڈ آئیکن پر نظر آئے گا
         label = {
             if (selected) {
                 Text(label, fontSize = 12.sp, fontWeight = FontWeight.Bold)
@@ -140,13 +137,12 @@ private fun NavItem(
             selectedIconColor = MaterialTheme.colorScheme.primary,
             selectedTextColor = MaterialTheme.colorScheme.primary,
             unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-            // 👇 indicator بہت ہلکا (تصویر جیسا)
             indicatorColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
         )
     )
 }
 
-// ---------------- ڈیسکٹاپ لے آؤٹ ----------------
+// ---------------- ڈیسک ٹاپ لے آؤٹ ----------------
 @Composable
 private fun DesktopLayout(
     selectedTab: Int,
@@ -183,7 +179,7 @@ private fun DesktopLayout(
                         onClick = { navigator.push(AuthScreen()) },
                         shape = RoundedCornerShape(24.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
-                  ) {
+                    ) {
                         Text("Log in", color = MaterialTheme.colorScheme.onPrimary)
                     }
                 },
@@ -198,7 +194,7 @@ private fun DesktopLayout(
                 header = { Icon(Icons.Default.Home, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.padding(bottom = 16.dp)) }
             ) {
                 RailItem(Icons.Default.Home, "Home", selectedTab == 0) { onTabChange(0) }
-                RailItem(Icons.Default.PlayCircle, "Reels", selectedTab == 1) { onTabChange(1) }
+                RailItem(Icons.Default.PlayCircle, "Clips", selectedTab == 1) { onTabChange(1) }
                 RailItem(Icons.Default.Mail, "Inbox", selectedTab == 2) { onTabChange(2) }
                 RailItem(Icons.Default.Person, "My Profile", selectedTab == 3) { onTabChange(3) }
                 RailItem(Icons.Default.Download, "Downloads", selectedTab == 4) { onTabChange(4) }
@@ -211,14 +207,14 @@ private fun DesktopLayout(
             Box(modifier = Modifier.weight(1f).fillMaxHeight().padding(16.dp)) {
                 when (selectedTab) {
                     0 -> VideoGrid(padding = PaddingValues(0.dp), navigator = navigator, twoColumns = true)
-                    1 -> ReelsScreen().Content()          
-                    2 -> InboxScreen().Content()          
-                    3 -> ChannelScreen().Content()
-                    4 -> DownloadsScreen()
-                    5 -> MonetizationScreen().Content()
+                    1 -> ReelsScreen().Content()          // 👈 .Content() لگانا ضروری ہے
+                    2 -> InboxScreen().Content()          // 👈 .Content() لگانا ضروری ہے
+                    3 -> ChannelScreen().Content()        // 👈 .Content() لگانا ضروری ہے
+                    4 -> DownloadsScreen()                // 👈 یہ @Composable فنکشن ہے، () کافی ہے
+                    5 -> MonetizationScreen().Content()   // 👈 .Content() لگانا ضروری ہے
                     6 -> VideoGrid(padding = PaddingValues(0.dp), navigator = navigator, twoColumns = true)
-                    7 -> SettingsScreen()
-                    8 -> HelpCenterScreen()
+                    7 -> SettingsScreen()                 // 👈 یہ @Composable فنکشن ہے
+                    8 -> HelpCenterScreen()               // 👈 یہ @Composable فنکشن ہے
                 }
             }
         }
