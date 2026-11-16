@@ -23,10 +23,9 @@ import org.example.app.DummyVideo
 
 @Composable
 fun VideoCard(
-    video: DummyVideo, 
-    duration: String? = null, 
+    video: DummyVideo,
     onVideoClick: () -> Unit,
-    onChannelClick: () -> Unit // 👈 نیا پیرامیٹر
+    onChannelClick: () -> Unit
 ) {
     Card(
         onClick = onVideoClick,
@@ -36,6 +35,7 @@ fun VideoCard(
         border = BorderStroke(1.dp, Color.White.copy(alpha = 0.8f))
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
+            // تھمب نیل + duration بیج + ⋮
             Box(modifier = Modifier.fillMaxWidth().height(180.dp)) {
                 AsyncImage(
                     model = video.thumbnailUrl,
@@ -43,22 +43,26 @@ fun VideoCard(
                     modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)),
                     contentScale = ContentScale.Crop
                 )
-                if (duration != null) {
+                if (video.duration.isNotEmpty()) {
                     Box(
-                        modifier = Modifier.align(Alignment.BottomEnd).padding(8.dp)
+                        modifier = Modifier
+                            .align(Alignment.BottomEnd)
+                            .padding(8.dp)
                             .background(Color.Black.copy(alpha = 0.75f), RoundedCornerShape(4.dp))
                             .padding(horizontal = 6.dp, vertical = 2.dp)
                     ) {
-                        Text(duration, color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.Medium)
+                        Text(video.duration, color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.Medium)
                     }
                 }
-                IconButton(onClick = { }, modifier = Modifier.align(Alignment.TopEnd).padding(4.dp)) {
+                IconButton(
+                    onClick = { },
+                    modifier = Modifier.align(Alignment.TopEnd).padding(4.dp)
+                ) {
                     Icon(Icons.Default.MoreVert, contentDescription = "More", tint = Color.White)
                 }
             }
-            
+            // آواتار + ٹائٹل + چینل + views/تاریخ
             Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.Top) {
-                // 👇 چینل کی تصویر پر کلک کرنے کا ایکشن
                 AsyncImage(
                     model = "https://picsum.photos/seed/channel/80/80",
                     contentDescription = "Channel",
@@ -67,9 +71,23 @@ fun VideoCard(
                 )
                 Spacer(modifier = Modifier.width(12.dp))
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(video.title, style = MaterialTheme.typography.titleMedium, maxLines = 2, color = Color(0xFF1F2937), fontWeight = FontWeight.Medium)
+                    Text(
+                        video.title,
+                        style = MaterialTheme.typography.titleMedium,
+                        maxLines = 2,
+                        color = Color(0xFF1F2937),
+                        fontWeight = FontWeight.Medium
+                    )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(video.channel, style = MaterialTheme.typography.bodyMedium, color = Color(0xFF4B5563))
+                    val meta = listOfNotNull(
+                        video.views.takeIf { it.isNotEmpty() },
+                        video.publishDate.takeIf { it.isNotEmpty() }
+                    ).joinToString(" • ")
+                    if (meta.isNotEmpty()) {
+                        Spacer(modifier = Modifier.height(2.dp))
+                        Text(meta, style = MaterialTheme.typography.bodySmall, color = Color(0xFF4B5563))
+                    }
                 }
             }
         }
