@@ -17,30 +17,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 @Composable
-fun ClipsScreen() {
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Icon(Icons.Default.PlayCircle, contentDescription = null, modifier = Modifier.size(64.dp), tint = Color(0xFF6200EE))
-            Spacer(modifier = Modifier.height(16.dp))
-            Text("Clips / Reels Feed", fontSize = 20.sp, fontWeight = FontWeight.Bold)
-            Text("Vertical scrolling short videos will appear here.", color = Color.Gray)
-        }
-    }
-}
-
-@Composable
-fun InboxScreen() {
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Icon(Icons.Default.Mail, contentDescription = null, modifier = Modifier.size(64.dp), tint = Color(0xFF6200EE))
-            Spacer(modifier = Modifier.height(16.dp))
-            Text("Inbox", fontSize = 20.sp, fontWeight = FontWeight.Bold)
-            Text("No new messages.", color = Color.Gray)
-        }
-    }
-}
-
-@Composable
 fun DownloadsScreen() {
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
