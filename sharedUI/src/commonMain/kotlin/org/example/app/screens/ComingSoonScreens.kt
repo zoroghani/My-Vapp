@@ -139,3 +139,15 @@ class InboxScreen : Screen {
     @Composable
     override fun Content() = inner.Content()
 }
+
+// 💰 Monetization Screen — ComingSoonScreen سے بنی ہوئی
+class MonetizationScreen : Screen {
+    private val inner = ComingSoonScreen(
+        title = "Monetization",
+        icon = Icons.Default.MonetizationOn,
+        message = "Start earning from your videos! Ad revenue, memberships, and Super Thanks are coming in Version 2.0."
+    )
+    
+    @Composable
+    override fun Content() = inner.Content()
+}
