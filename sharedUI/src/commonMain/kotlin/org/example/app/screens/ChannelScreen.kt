@@ -106,7 +106,6 @@ class ChannelScreen : Screen {
                         dummyVideos.forEach { video ->
                             VideoCard(
                                 video = video,
-                                duration = "56:44",
                                 onVideoClick = { navigator.push(VideoPlayerScreen(video.videoUrl, video.title)) },
                                 onChannelClick = { /* Already on channel screen */ }
                             )
