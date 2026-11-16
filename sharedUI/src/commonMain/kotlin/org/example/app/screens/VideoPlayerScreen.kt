@@ -1,4 +1,4 @@
-org.example.app.screens
+package org.example.app.screens
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -205,8 +205,8 @@ class VideoPlayerScreen(
                 Spacer(modifier = Modifier.height(20.dp))
 
                 VideoCard(
-                    video = org.example.app.dummyVideos[0],
-                    onVideoClick = { navigator.push(VideoPlayerScreen(org.example.app.dummyVideos[0].videoUrl, org.example.app.dummyVideos[0].title)) },
+                    video = dummyVideos[0],
+                    onVideoClick = { navigator.push(VideoPlayerScreen(dummyVideos[0].videoUrl, dummyVideos[0].title)) },
                     onChannelClick = { navigator.push(ChannelScreen()) }
                 )
                 Spacer(modifier = Modifier.height(24.dp))
