@@ -24,6 +24,8 @@ import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import coil3.compose.AsyncImage
 import org.example.app.dummyVideos
+import androidx.compose.ui.graphics.Color
+import androidx.compose.material3.Button
 
 private val AccentColor = Color(0xFFFF4757)
 
