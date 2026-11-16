@@ -1,6 +1,9 @@
 package org.example.app.screens
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.RowScope
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -112,7 +115,7 @@ private fun MobileLayout(
 
 // 👇 سلیکٹڈ ٹیب کا نیا انداز
 @Composable
-private fun NavItem(
+private fun RowScope.NavItem(   // <-- یہاں RowScope. شامل کیا ہے
     icon: ImageVector,
     label: String,
     selected: Boolean,
