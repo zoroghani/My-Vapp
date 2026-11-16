@@ -19,6 +19,8 @@ import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import org.example.app.dummyVideos
 import org.example.app.core.ThemeState
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
 
 class VideoListScreen : Screen {
     @Composable
