@@ -211,11 +211,11 @@ private fun DesktopLayout(
             Box(modifier = Modifier.weight(1f).fillMaxHeight().padding(16.dp)) {
                 when (selectedTab) {
                     0 -> VideoGrid(padding = PaddingValues(0.dp), navigator = navigator, twoColumns = true)
-                    1 -> ReelsScreen()
-                    2 -> InboxScreen()
-                    3 -> ChannelScreen()
+                    1 -> ReelsScreen().Content()          
+                    2 -> InboxScreen().Content()          
+                    3 -> ChannelScreen().Content()
                     4 -> DownloadsScreen()
-                    5 -> MonetizationScreen()
+                    5 -> MonetizationScreen().Content()
                     6 -> VideoGrid(padding = PaddingValues(0.dp), navigator = navigator, twoColumns = true)
                     7 -> SettingsScreen()
                     8 -> HelpCenterScreen()
