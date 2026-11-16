@@ -80,7 +80,10 @@ private fun MobileLayout(
                 tonalElevation = 0.dp
             ) {
                 NavItem(Icons.Default.Home, "Home", selectedTab == 0) { onTabChange(0) }
-                NavItem(Icons.Default.PlayCircle, "Reels", selectedTab == 1) { onTabChange(1) }
+                NavItem(Icons.Default.PlayCircle, "Reels", selectedTab == 1) {
+                   onTabChange(1)
+                   navigator.push(ReelsScreen())
+                }
 
                 // ➕ Add بٹن (درمیان، ہمیشہ بڑا)
                 NavigationBarItem(
@@ -94,7 +97,10 @@ private fun MobileLayout(
                     )
                 )
 
-                NavItem(Icons.Default.Mail, "Inbox", selectedTab == 3) { onTabChange(3) }
+                NavItem(Icons.Default.Mail, "Inbox", selectedTab == 3) {
+                   onTabChange(3)
+                   navigator.push(InboxScreen())
+                }
                 NavItem(Icons.Default.Person, "Profile", selectedTab == 4) {
                     onTabChange(4); navigator.push(ProfileScreen())
                 }
@@ -192,7 +198,7 @@ private fun DesktopLayout(
                 header = { Icon(Icons.Default.Home, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.padding(bottom = 16.dp)) }
             ) {
                 RailItem(Icons.Default.Home, "Home", selectedTab == 0) { onTabChange(0) }
-                RailItem(Icons.Default.PlayCircle, "Clips", selectedTab == 1) { onTabChange(1) }
+                RailItem(Icons.Default.PlayCircle, "Reels", selectedTab == 1) { onTabChange(1) }
                 RailItem(Icons.Default.Mail, "Inbox", selectedTab == 2) { onTabChange(2) }
                 RailItem(Icons.Default.Person, "My Profile", selectedTab == 3) { onTabChange(3) }
                 RailItem(Icons.Default.Download, "Downloads", selectedTab == 4) { onTabChange(4) }
@@ -204,7 +210,7 @@ private fun DesktopLayout(
             Box(modifier = Modifier.weight(1f).fillMaxHeight().padding(16.dp)) {
                 when (selectedTab) {
                     0 -> VideoGrid(padding = PaddingValues(0.dp), navigator = navigator, twoColumns = true)
-                    1 -> ClipsScreen()
+                    1 -> ReelsScreen()
                     2 -> InboxScreen()
                     3 -> ChannelScreen()
                     4 -> DownloadsScreen()
