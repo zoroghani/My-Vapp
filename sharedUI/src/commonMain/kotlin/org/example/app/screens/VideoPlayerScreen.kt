@@ -27,6 +27,9 @@ import org.example.app.dummyVideos
 
 private val AccentColor = Color(0xFFFF4757)
 
+// کمنٹ کا سادہ ماڈل
+data class Comment(val author: String, val text: String)
+
 class VideoPlayerScreen(
     private val videoUrl: String,
     private val videoTitle: String
@@ -38,12 +41,20 @@ class VideoPlayerScreen(
 
         var isLiked by remember { mutableStateOf(false) }
         var isFollowed by remember { mutableStateOf(false) }
-        var commentText by remember { mutableStateOf("") }
+        var isDescriptionExpanded by remember { mutableStateOf(false) }
 
-        // Snackbar state
+        // کمنٹ فیچر — فنکشنل
+        var commentText by remember { mutableStateOf("") }
+        val comments = remember {
+            mutableStateListOf(
+                Comment("Tech Fan", "Great video! 🙌"),
+                Comment("Dev Lover", "Very helpful, thanks.")
+            )
+        }
+
+        // Snackbar
         val snackbarHostState = remember { SnackbarHostState() }
         var snackbarMessage by remember { mutableStateOf<String?>(null) }
-
         LaunchedEffect(snackbarMessage) {
             snackbarMessage?.let { msg ->
                 snackbarHostState.showSnackbar(msg)
@@ -70,7 +81,7 @@ class VideoPlayerScreen(
                         .background(Color.Black)
                 )
 
-                // 2️⃣ ویڈیو کی معلومات
+                // 2️⃣ ٹائٹل + میٹا + "more" (کلکیبل → ڈسکرپشن)
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -83,117 +94,131 @@ class VideoPlayerScreen(
                         color = Color(0xFF1A1A1A)
                     )
                     Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = "37 views  •  2y ago  •  more",
-                        fontSize = 12.sp,
-                        color = Color(0xFF666666)
-                    )
-                }
-
-                // 3️⃣ چینل کی معلومات (کلکیبل → ChannelScreen)
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { navigator.push(ChannelScreen()) }
-                        .padding(horizontal = 16.dp, vertical = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(40.dp)
-                            .clip(CircleShape)
-                            .background(Color(0xFF008060)),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text("Z", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
-                    }
-                    Spacer(modifier = Modifier.width(12.dp))
-                    Column(modifier = Modifier.weight(1f)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
-                            text = "World of Music",
-                            fontSize = 15.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color(0xFF1A1A1A)
-                        )
-                        Text(
-                            text = "1.2M subscribers",
+                            text = "37 views  •  2y ago  •  ",
                             fontSize = 12.sp,
                             color = Color(0xFF666666)
                         )
-                    }
-                    Button(
-                        onClick = { isFollowed = !isFollowed },
-                        shape = RoundedCornerShape(20.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = if (isFollowed) Color(0xFFE0E0E0) else AccentColor,
-                            contentColor = if (isFollowed) Color(0xFF1A1A1A) else Color.White
-                        ),
-                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
-                    ) {
+                        // 👇 more بٹن — کلک پر ڈسکرپشن کھلے گی
                         Text(
-                            text = if (isFollowed) "Following" else "Follow",
+                            text = if (isDescriptionExpanded) "less" else "more",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = AccentColor,
+                            modifier = Modifier.clickable { isDescriptionExpanded = !isDescriptionExpanded }
+                        )
+                    }
+                    // 👇 ڈسکرپشن (صرف more دبانے پر)
+                    if (isDescriptionExpanded) {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = "This is the official video description. It contains details about the video, tags, and links. " +
+                                    "Watch till the end for more amazing content! #video #trending",
                             fontSize = 13.sp,
-                            fontWeight = FontWeight.Bold
+                            color = Color(0xFF444444)
                         )
                     }
                 }
 
-                Spacer(modifier = Modifier.height(12.dp))
-
-                // 4️⃣ Like, Share, Download آئیکنز
+                // 3️⃣ ایک ہی لائن: [آواتار] [FOLLOW] ... [❤️] [↪️] [⬇️]
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    IconButton(
-                        onClick = { isLiked = !isLiked },
-                        modifier = Modifier
-                            .size(40.dp)
-                            .clip(CircleShape)
-                            .background(Color(0xFFF0F0F0))
+                    // بائیں طرف: آواتار + FOLLOW (علیحدہ علیحدہ)
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        Icon(
-                            imageVector = if (isLiked) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-                            contentDescription = "Like",
-                            tint = if (isLiked) Color(0xFFE53935) else Color(0xFF1A1A1A),
-                            modifier = Modifier.size(20.dp)
-                        )
+                        // آواتار (کلکیبل → ChannelScreen)
+                        Box(
+                            modifier = Modifier
+                                .size(40.dp)
+                                .clip(CircleShape)
+                                .background(Color(0xFF008060))
+                                .clickable { navigator.push(ChannelScreen()) },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text("Z", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                        }
+                        // FOLLOW بٹن (علیحدہ)
+                        Button(
+                            onClick = { isFollowed = !isFollowed },
+                            shape = RoundedCornerShape(20.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = if (isFollowed) Color(0xFFE0E0E0) else AccentColor,
+                                contentColor = if (isFollowed) Color(0xFF1A1A1A) else Color.White
+                            ),
+                            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+                        ) {
+                            Text(
+                                text = if (isFollowed) "Following" else "Follow",
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
                     }
-                    IconButton(
-                        onClick = { snackbarMessage = "Link copied to clipboard!" },
-                        modifier = Modifier
-                            .size(40.dp)
-                            .clip(CircleShape)
-                            .background(Color(0xFFF0F0F0))
+
+                    // دائیں طرف: Like + Forward + Download
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.Share,
-                            contentDescription = "Share",
-                            tint = Color(0xFF1A1A1A),
-                            modifier = Modifier.size(20.dp)
-                        )
-                    }
-                    IconButton(
-                        onClick = { snackbarMessage = "Download started..." },
-                        modifier = Modifier
-                            .size(40.dp)
-                            .clip(CircleShape)
-                            .background(Color(0xFFF0F0F0))
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Download,
-                            contentDescription = "Download",
-                            tint = Color(0xFF1A1A1A),
-                            modifier = Modifier.size(20.dp)
-                        )
+                        // ❤️ Like
+                        IconButton(
+                            onClick = { isLiked = !isLiked },
+                            modifier = Modifier
+                                .size(40.dp)
+                                .clip(CircleShape)
+                                .background(Color(0xFFF0F0F0))
+                        ) {
+                            Icon(
+                                imageVector = if (isLiked) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                                contentDescription = "Like",
+                                tint = if (isLiked) Color(0xFFE53935) else Color(0xFF1A1A1A),
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                        // ↪️ Forward (شیئر کی جگہ)
+                        IconButton(
+                            onClick = { snackbarMessage = "Forwarded!" },
+                            modifier = Modifier
+                                .size(40.dp)
+                                .clip(CircleShape)
+                                .background(Color(0xFFF0F0F0))
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Forward,
+                                contentDescription = "Forward",
+                                tint = Color(0xFF1A1A1A),
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                        // ⬇️ Download
+                        IconButton(
+                            onClick = { snackbarMessage = "Download started..." },
+                            modifier = Modifier
+                                .size(40.dp)
+                                .clip(CircleShape)
+                                .background(Color(0xFFF0F0F0))
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Download,
+                                contentDescription = "Download",
+                                tint = Color(0xFF1A1A1A),
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
                     }
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // 5️⃣ Comments سیکشن (گلاس کارڈ)
+                // 4️⃣ Comments — فنکشنل (گلاس کارڈ)
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -207,12 +232,55 @@ class VideoPlayerScreen(
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Text(
-                            text = "Comments",
+                            text = "Comments (${comments.size})",
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Medium,
                             color = Color(0xFF666666)
                         )
                         Spacer(modifier = Modifier.height(8.dp))
+
+                        // 👇 کمنٹس کی لسٹ
+                        comments.forEach { comment ->
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 6.dp),
+                                verticalAlignment = Alignment.Top
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(28.dp)
+                                        .clip(CircleShape)
+                                        .background(Color(0xFF008060)),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = comment.author.take(1),
+                                        color = Color.White,
+                                        fontSize = 11.sp,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
+                                Spacer(modifier = Modifier.width(10.dp))
+                                Column {
+                                    Text(
+                                        comment.author,
+                                        fontSize = 12.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color(0xFF1A1A1A)
+                                    )
+                                    Text(
+                                        comment.text,
+                                        fontSize = 13.sp,
+                                        color = Color(0xFF333333)
+                                    )
+                                }
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        // 👇 نیا کمنٹ لکھنے کا ان پٹ + Send بٹن
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Box(
                                 modifier = Modifier
@@ -228,7 +296,7 @@ class VideoPlayerScreen(
                                 value = commentText,
                                 onValueChange = { commentText = it },
                                 placeholder = { Text("Comment...", color = Color.Gray, fontSize = 13.sp) },
-                                modifier = Modifier.fillMaxWidth(),
+                                modifier = Modifier.weight(1f),
                                 singleLine = true,
                                 shape = RoundedCornerShape(20.dp),
                                 colors = OutlinedTextFieldDefaults.colors(
@@ -236,13 +304,29 @@ class VideoPlayerScreen(
                                     unfocusedBorderColor = Color(0xFFE0E0E0)
                                 )
                             )
+                            // 👇 Send بٹن
+                            IconButton(
+                                onClick = {
+                                    if (commentText.isNotBlank()) {
+                                        comments.add(0, Comment("Andrew Ainsley", commentText))
+                                        commentText = ""
+                                        snackbarMessage = "Comment posted!"
+                                    }
+                                }
+                            ) {
+                                Icon(
+                                    Icons.Default.Send,
+                                    contentDescription = "Send",
+                                    tint = if (commentText.isNotBlank()) AccentColor else Color.Gray
+                                )
+                            }
                         }
                     }
                 }
 
                 Spacer(modifier = Modifier.height(20.dp))
 
-                // 6️⃣ Related ویڈیو — ✅ اب اسی VideoCard سے (ہوم والا فارمیٹ)
+                // 5️⃣ Related ویڈیو (ہوم والا VideoCard)
                 VideoCard(
                     video = dummyVideos[0],
                     onVideoClick = {
