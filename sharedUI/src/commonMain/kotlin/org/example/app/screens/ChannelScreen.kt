@@ -1,6 +1,5 @@
 package org.example.app.screens
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -13,7 +12,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -25,8 +23,6 @@ import cafe.adriel.voyager.navigator.currentOrThrow
 import coil3.compose.AsyncImage
 import org.example.app.dummyVideos
 
-private val AccentColor = Color(0xFFFF4757)
-
 class ChannelScreen : Screen {
     @Composable
     override fun Content() {
@@ -37,26 +33,46 @@ class ChannelScreen : Screen {
         Scaffold(
             topBar = {
                 TopAppBar(
-                    title = { Text("World of Music", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color(0xFF1A1A1A)) },
+                    title = {
+                        Text(
+                            "World of Music",
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    },
                     navigationIcon = {
                         IconButton(onClick = { navigator.pop() }) {
-                            Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = Color(0xFF1A1A1A))
+                            Icon(
+                                Icons.Default.ArrowBack,
+                                contentDescription = "Back",
+                                tint = MaterialTheme.colorScheme.onSurface
+                            )
                         }
                     },
                     actions = {
                         IconButton(onClick = { }) {
-                            Icon(Icons.Default.MoreVert, contentDescription = "More", tint = Color(0xFF1A1A1A))
+                            Icon(
+                                Icons.Default.MoreVert,
+                                contentDescription = "More",
+                                tint = MaterialTheme.colorScheme.onSurface
+                            )
                         }
                     },
-                    colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.surface
+                    )
                 )
             },
-            containerColor = Color.White
+            containerColor = MaterialTheme.colorScheme.background
         ) { padding ->
             Column(
-                modifier = Modifier.fillMaxSize().padding(padding).verticalScroll(rememberScrollState())
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding)
+                    .verticalScroll(rememberScrollState())
             ) {
-                // چینل ہیڈر
+                // 1️⃣ چینل ہیڈر
                 Column(
                     modifier = Modifier.fillMaxWidth().padding(vertical = 20.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
@@ -69,44 +85,97 @@ class ChannelScreen : Screen {
                     )
                     Spacer(modifier = Modifier.height(12.dp))
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text("World of Music", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Color(0xFF1A1A1A))
+                        Text(
+                            "World of Music",
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
                         Spacer(modifier = Modifier.width(6.dp))
-                        Icon(Icons.Default.CheckCircle, contentDescription = "Verified", tint = AccentColor, modifier = Modifier.size(20.dp))
+                        Icon(
+                            Icons.Default.CheckCircle,
+                            contentDescription = "Verified",
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(20.dp)
+                        )
                     }
                     Spacer(modifier = Modifier.height(12.dp))
                     Button(
                         onClick = { isFollowing = !isFollowing },
                         shape = RoundedCornerShape(24.dp),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = if (isFollowing) Color(0xFFE0E0E0) else AccentColor,
-                            contentColor = if (isFollowing) Color(0xFF1A1A1A) else Color.White
+                            containerColor = if (isFollowing)
+                                MaterialTheme.colorScheme.surfaceVariant
+                            else
+                                MaterialTheme.colorScheme.primary,
+                            contentColor = if (isFollowing)
+                                MaterialTheme.colorScheme.onSurfaceVariant
+                            else
+                                MaterialTheme.colorScheme.onPrimary
                         )
                     ) {
-                        Text(if (isFollowing) "Following" else "Follow", fontWeight = FontWeight.Bold)
+                        Text(
+                            if (isFollowing) "Following" else "Follow",
+                            fontWeight = FontWeight.Bold
+                        )
                     }
                     Spacer(modifier = Modifier.height(12.dp))
-                    Text("9.5M followers  ·  769 videos", fontSize = 13.sp, color = Color(0xFF666666))
+                    Text(
+                        "9.5M followers  ·  769 videos",
+                        fontSize = 13.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
 
-                // ٹیبز
+                // 2️⃣ ٹیبز
                 TabRow(
                     selectedTabIndex = selectedTab,
-                    containerColor = Color.White,
-                    contentColor = AccentColor
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    contentColor = MaterialTheme.colorScheme.primary
                 ) {
-                    Tab(selected = selectedTab == 0, onClick = { selectedTab = 0 },
-                        text = { Text("Videos", fontWeight = if (selectedTab == 0) FontWeight.Bold else FontWeight.Normal) })
-                    Tab(selected = selectedTab == 1, onClick = { selectedTab = 1 },
-                        text = { Text("About", fontWeight = if (selectedTab == 1) FontWeight.Bold else FontWeight.Normal) })
+                    Tab(
+                        selected = selectedTab == 0,
+                        onClick = { selectedTab = 0 },
+                        text = {
+                            Text(
+                                "Videos",
+                                fontWeight = if (selectedTab == 0) FontWeight.Bold else FontWeight.Normal,
+                                color = if (selectedTab == 0)
+                                    MaterialTheme.colorScheme.primary
+                                else
+                                    MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    )
+                    Tab(
+                        selected = selectedTab == 1,
+                        onClick = { selectedTab = 1 },
+                        text = {
+                            Text(
+                                "About",
+                                fontWeight = if (selectedTab == 1) FontWeight.Bold else FontWeight.Normal,
+                                color = if (selectedTab == 1)
+                                    MaterialTheme.colorScheme.primary
+                                else
+                                    MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    )
                 }
 
-                // مواد
+                // 3️⃣ مواد
                 if (selectedTab == 0) {
-                    Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp)) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 12.dp)
+                    ) {
                         dummyVideos.forEach { video ->
                             VideoCard(
                                 video = video,
-                                onVideoClick = { navigator.push(VideoPlayerScreen(video.videoUrl, video.title)) },
+                                onVideoClick = {
+                                    navigator.push(VideoPlayerScreen(video.videoUrl, video.title))
+                                },
                                 onChannelClick = { /* Already on channel screen */ }
                             )
                             Spacer(modifier = Modifier.height(12.dp))
@@ -114,11 +183,18 @@ class ChannelScreen : Screen {
                     }
                 } else {
                     Column(modifier = Modifier.fillMaxWidth().padding(20.dp)) {
-                        Text("About", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color(0xFF1A1A1A))
+                        Text(
+                            "About",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
                             text = "World of Music — International music, dance concerts and live performances from around the globe. New videos every week.",
-                            fontSize = 14.sp, color = Color(0xFF444444), textAlign = TextAlign.Start
+                            fontSize = 14.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            textAlign = TextAlign.Start
                         )
                     }
                 }
