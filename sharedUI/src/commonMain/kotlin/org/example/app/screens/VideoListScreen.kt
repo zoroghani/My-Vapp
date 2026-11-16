@@ -202,9 +202,10 @@ private fun DesktopLayout(
                 RailItem(Icons.Default.Mail, "Inbox", selectedTab == 2) { onTabChange(2) }
                 RailItem(Icons.Default.Person, "My Profile", selectedTab == 3) { onTabChange(3) }
                 RailItem(Icons.Default.Download, "Downloads", selectedTab == 4) { onTabChange(4) }
-                RailItem(Icons.Default.DarkMode, "Dark Mode", selectedTab == 5) { ThemeState.isDarkMode = !ThemeState.isDarkMode }
-                RailItem(Icons.Default.Settings, "Settings", selectedTab == 6) { onTabChange(6) }
-                RailItem(Icons.Default.Help, "Help Center", selectedTab == 7) { onTabChange(7) }
+                RailItem(Icons.Default.MonetizationOn, "Monetization", selectedTab == 5) { onTabChange(5) }
+                RailItem(Icons.Default.DarkMode, "Dark Mode", selectedTab == 6) { ThemeState.isDarkMode = !ThemeState.isDarkMode }
+                RailItem(Icons.Default.Settings, "Settings", selectedTab == 7) { onTabChange(7) }
+                RailItem(Icons.Default.Help, "Help Center", selectedTab == 8) { onTabChange(8) }
             }
 
             Box(modifier = Modifier.weight(1f).fillMaxHeight().padding(16.dp)) {
@@ -214,9 +215,10 @@ private fun DesktopLayout(
                     2 -> InboxScreen()
                     3 -> ChannelScreen()
                     4 -> DownloadsScreen()
-                    5 -> VideoGrid(padding = PaddingValues(0.dp), navigator = navigator, twoColumns = true)
-                    6 -> SettingsScreen()
-                    7 -> HelpCenterScreen()
+                    5 -> MonetizationScreen()
+                    6 -> VideoGrid(padding = PaddingValues(0.dp), navigator = navigator, twoColumns = true)
+                    7 -> SettingsScreen()
+                    8 -> HelpCenterScreen()
                 }
             }
         }
