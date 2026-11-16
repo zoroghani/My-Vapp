@@ -16,20 +16,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.foundation.Image
-import androidx.compose.ui.graphics.ImageBitmap
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import org.example.app.core.platform.extractVideoThumbnail
 import org.example.app.core.platform.NativeVideoPlayer
+import org.example.app.dummyVideos
 
 private val AccentColor = Color(0xFFFF4757)
 
@@ -41,28 +35,19 @@ class VideoPlayerScreen(
     @Composable
     override fun Content() {
         val navigator = LocalNavigator.currentOrThrow
-        val scope = rememberCoroutineScope()
-        
+
         var isLiked by remember { mutableStateOf(false) }
         var isFollowed by remember { mutableStateOf(false) }
         var commentText by remember { mutableStateOf("") }
-        var thumbnail by remember { mutableStateOf<ImageBitmap?>(null) }
-        
+
         // Snackbar state
         val snackbarHostState = remember { SnackbarHostState() }
         var snackbarMessage by remember { mutableStateOf<String?>(null) }
-        
+
         LaunchedEffect(snackbarMessage) {
             snackbarMessage?.let { msg ->
                 snackbarHostState.showSnackbar(msg)
                 snackbarMessage = null
-            }
-        }
-
-        // ویڈیو سے تھمب نیل نکالیں
-        LaunchedEffect(videoUrl) {
-            if (!videoUrl.startsWith("http")) {
-                thumbnail = extractVideoThumbnail(videoUrl)
             }
         }
 
@@ -76,7 +61,7 @@ class VideoPlayerScreen(
                     .padding(padding)
                     .verticalScroll(rememberScrollState())
             ) {
-                // 1️⃣ ویڈیو پلئر (Native - Android + Desktop)
+                // 1️⃣ ویڈیو پلئر
                 NativeVideoPlayer(
                     videoUrl = videoUrl,
                     modifier = Modifier
@@ -113,7 +98,6 @@ class VideoPlayerScreen(
                         .padding(horizontal = 16.dp, vertical = 8.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // چینل لوگو
                     Box(
                         modifier = Modifier
                             .size(40.dp)
@@ -137,7 +121,6 @@ class VideoPlayerScreen(
                             color = Color(0xFF666666)
                         )
                     }
-                    // Follow بٹن
                     Button(
                         onClick = { isFollowed = !isFollowed },
                         shape = RoundedCornerShape(20.dp),
@@ -164,7 +147,6 @@ class VideoPlayerScreen(
                         .padding(horizontal = 16.dp),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    // Like
                     IconButton(
                         onClick = { isLiked = !isLiked },
                         modifier = Modifier
@@ -179,12 +161,8 @@ class VideoPlayerScreen(
                             modifier = Modifier.size(20.dp)
                         )
                     }
-
-                    // Share
                     IconButton(
-                        onClick = {
-                            snackbarMessage = "Link copied to clipboard!"
-                        },
+                        onClick = { snackbarMessage = "Link copied to clipboard!" },
                         modifier = Modifier
                             .size(40.dp)
                             .clip(CircleShape)
@@ -197,12 +175,8 @@ class VideoPlayerScreen(
                             modifier = Modifier.size(20.dp)
                         )
                     }
-
-                    // Download
                     IconButton(
-                        onClick = {
-                            snackbarMessage = "Download started..."
-                        },
+                        onClick = { snackbarMessage = "Download started..." },
                         modifier = Modifier
                             .size(40.dp)
                             .clip(CircleShape)
@@ -239,7 +213,6 @@ class VideoPlayerScreen(
                             color = Color(0xFF666666)
                         )
                         Spacer(modifier = Modifier.height(8.dp))
-                        
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Box(
                                 modifier = Modifier
@@ -269,94 +242,14 @@ class VideoPlayerScreen(
 
                 Spacer(modifier = Modifier.height(20.dp))
 
-                // 6️⃣ Related ویڈیو (گلاس کارڈ)
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp)
-                        .clickable { /* Related ویڈیو پر کلک */ },
-                    shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = Color.White.copy(alpha = 0.8f)
-                    ),
-                    border = BorderStroke(1.dp, Color.White.copy(alpha = 0.6f)),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
-                ) {
-                    Column {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(180.dp)
-                                .background(Color(0xFFE0E0E0))
-                        ) {
-                            if (thumbnail != null) {
-                                Image(
-                                    bitmap = thumbnail!!,
-                                    contentDescription = "Related Video",
-                                    modifier = Modifier.fillMaxSize(),
-                                    contentScale = ContentScale.Crop
-                                )
-                            }
-                            Box(
-                                modifier = Modifier
-                                    .align(Alignment.BottomEnd)
-                                    .padding(8.dp)
-                                    .background(Color.Black.copy(alpha = 0.7f), RoundedCornerShape(4.dp))
-                                    .padding(horizontal = 6.dp, vertical = 2.dp)
-                            ) {
-                                Text("1:26", color = Color.White, fontSize = 11.sp)
-                            }
-                            Icon(
-                                imageVector = Icons.Default.MoreVert,
-                                contentDescription = "More",
-                                tint = Color.White,
-                                modifier = Modifier
-                                    .align(Alignment.TopEnd)
-                                    .padding(8.dp)
-                            )
-                        }
-
-                        Column(modifier = Modifier.padding(12.dp)) {
-                            Text(
-                                text = "Might As Well Dance [Official Video]",
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight.Medium,
-                                color = Color(0xFF1A1A1A),
-                                maxLines = 2
-                            )
-                            Spacer(modifier = Modifier.height(6.dp))
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(24.dp)
-                                        .clip(CircleShape)
-                                        .background(Color(0xFFE0E0E0)),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Icon(
-                                        Icons.Default.Person,
-                                        contentDescription = null,
-                                        modifier = Modifier.size(16.dp),
-                                        tint = Color(0xFF666666)
-                                    )
-                                }
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Column {
-                                    Text(
-                                        text = "Jason Mraz",
-                                        fontSize = 12.sp,
-                                        color = Color(0xFF1A1A1A)
-                                    )
-                                    Text(
-                                        text = "665K views • 1 week ago",
-                                        fontSize = 11.sp,
-                                        color = Color(0xFF666666)
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
+                // 6️⃣ Related ویڈیو — ✅ اب اسی VideoCard سے (ہوم والا فارمیٹ)
+                VideoCard(
+                    video = dummyVideos[0],
+                    onVideoClick = {
+                        navigator.push(VideoPlayerScreen(dummyVideos[0].videoUrl, dummyVideos[0].title))
+                    },
+                    onChannelClick = { navigator.push(ChannelScreen()) }
+                )
 
                 Spacer(modifier = Modifier.height(24.dp))
             }
