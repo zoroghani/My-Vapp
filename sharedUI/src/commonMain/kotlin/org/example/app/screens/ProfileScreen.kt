@@ -24,6 +24,7 @@ import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import coil3.compose.AsyncImage
+import org.example.app.core.ThemeState
 
 private val AccentColor = Color(0xFFFF4757)
 
@@ -31,27 +32,26 @@ class ProfileScreen : Screen {
     @Composable
     override fun Content() {
         val navigator = LocalNavigator.currentOrThrow
-        var isDarkMode by remember { mutableStateOf(false) }
 
         Scaffold(
             topBar = {
                 TopAppBar(
-                    title = { Text("Profile", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Color(0xFF1A1A1A)) },
+                    title = { Text("Profile", fontSize = 20.sp, fontWeight = FontWeight.Bold) },
                     navigationIcon = {
                         IconButton(onClick = { navigator.pop() }) {
-                            Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = Color(0xFF1A1A1A))
+                            Icon(Icons.Default.ArrowBack, contentDescription = "Back")
                         }
                     },
-                    colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.surface,
+                        titleContentColor = MaterialTheme.colorScheme.onSurface
+                    )
                 )
             },
-            containerColor = Color.White
+            containerColor = MaterialTheme.colorScheme.background
         ) { padding ->
             Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(padding)
-                    .verticalScroll(rememberScrollState())
+                modifier = Modifier.fillMaxSize().padding(padding).verticalScroll(rememberScrollState())
             ) {
                 // آواتار + نام
                 Column(
@@ -66,28 +66,24 @@ class ProfileScreen : Screen {
                             contentScale = ContentScale.Crop
                         )
                         Box(
-                            modifier = Modifier
-                                .align(Alignment.BottomEnd)
-                                .size(28.dp)
-                                .clip(CircleShape)
-                                .background(AccentColor),
+                            modifier = Modifier.align(Alignment.BottomEnd).size(28.dp).clip(CircleShape).background(AccentColor),
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(Icons.Default.Edit, contentDescription = "Edit", tint = Color.White, modifier = Modifier.size(14.dp))
                         }
                     }
                     Spacer(modifier = Modifier.height(12.dp))
-                    Text("Andrew Ainsley", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color(0xFF1A1A1A))
+                    Text("Andrew Ainsley", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
                 }
 
-                // فہرست (سب ایک جیسی)
+                // فہرست
                 Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
                     ProfileRow(Icons.Default.PlayCircle, "My Profile") { navigator.push(ChannelScreen()) }
-                    ProfileRow(Icons.Default.Download, "Downloads") { /* Downloads screen */ }
-                    DarkModeRow(isDarkMode) { isDarkMode = !isDarkMode }
-                    ProfileRow(Icons.Default.LocationOn, "Location", value = "United States") { /* Location screen */ }
-                    ProfileRow(Icons.Default.Settings, "Settings") { }
-                    ProfileRow(Icons.Outlined.Info, "Help Center") { }
+                    ProfileRow(Icons.Default.Download, "Downloads") { navigator.push(DownloadsPage()) }
+                    DarkModeRow()
+                    ProfileRow(Icons.Default.LocationOn, "Location", value = "United States") { navigator.push(LocationPage()) }
+                    ProfileRow(Icons.Default.Settings, "Settings") { navigator.push(SettingsPage()) }
+                    ProfileRow(Icons.Outlined.Info, "Help Center") { navigator.push(HelpPage()) }
                     LogoutRow { }
                 }
                 Spacer(modifier = Modifier.height(24.dp))
@@ -96,35 +92,26 @@ class ProfileScreen : Screen {
     }
 }
 
-// عام قطار — اب optional value کے ساتھ (Location بھی اسی کو استعمال کرتا ہے)
 @Composable
 private fun ProfileRow(icon: ImageVector, label: String, value: String? = null, onClick: () -> Unit) {
-    Row(
-        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick).padding(vertical = 16.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Icon(icon, contentDescription = null, tint = Color(0xFF1A1A1A), modifier = Modifier.size(24.dp))
+    Row(modifier = Modifier.fillMaxWidth().clickable(onClick = onClick).padding(vertical = 16.dp), verticalAlignment = Alignment.CenterVertically) {
+        Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.onSurface, modifier = Modifier.size(24.dp))
         Spacer(modifier = Modifier.width(16.dp))
-        Text(label, fontSize = 16.sp, color = Color(0xFF1A1A1A), modifier = Modifier.weight(1f))
-        if (value != null) {
-            Text(value, fontSize = 14.sp, color = Color(0xFF999999), modifier = Modifier.padding(end = 8.dp))
-        }
-        Icon(Icons.Default.ChevronRight, contentDescription = null, tint = Color(0xFF999999), modifier = Modifier.size(20.dp))
+        Text(label, fontSize = 16.sp, color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.weight(1f))
+        if (value != null) Text(value, fontSize = 14.sp, color = Color.Gray, modifier = Modifier.padding(end = 8.dp))
+        Icon(Icons.Default.ChevronRight, contentDescription = null, tint = Color.Gray, modifier = Modifier.size(20.dp))
     }
 }
 
 @Composable
-private fun DarkModeRow(isDarkMode: Boolean, onToggle: () -> Unit) {
-    Row(
-        modifier = Modifier.fillMaxWidth().clickable(onClick = onToggle).padding(vertical = 16.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Icon(Icons.Default.Visibility, contentDescription = null, tint = Color(0xFF1A1A1A), modifier = Modifier.size(24.dp))
+private fun DarkModeRow() {
+    Row(modifier = Modifier.fillMaxWidth().clickable { ThemeState.isDarkMode = !ThemeState.isDarkMode }.padding(vertical = 16.dp), verticalAlignment = Alignment.CenterVertically) {
+        Icon(Icons.Default.Visibility, contentDescription = null, tint = MaterialTheme.colorScheme.onSurface, modifier = Modifier.size(24.dp))
         Spacer(modifier = Modifier.width(16.dp))
-        Text("Dark Mode", fontSize = 16.sp, color = Color(0xFF1A1A1A), modifier = Modifier.weight(1f))
+        Text("Dark Mode", fontSize = 16.sp, color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.weight(1f))
         Switch(
-            checked = isDarkMode,
-            onCheckedChange = { onToggle() },
+            checked = ThemeState.isDarkMode,
+            onCheckedChange = { ThemeState.isDarkMode = it },
             colors = SwitchDefaults.colors(checkedThumbColor = AccentColor, checkedTrackColor = AccentColor.copy(alpha = 0.3f))
         )
     }
@@ -132,10 +119,7 @@ private fun DarkModeRow(isDarkMode: Boolean, onToggle: () -> Unit) {
 
 @Composable
 private fun LogoutRow(onClick: () -> Unit) {
-    Row(
-        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick).padding(vertical = 16.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
+    Row(modifier = Modifier.fillMaxWidth().clickable(onClick = onClick).padding(vertical = 16.dp), verticalAlignment = Alignment.CenterVertically) {
         Icon(Icons.Default.Logout, contentDescription = null, tint = AccentColor, modifier = Modifier.size(24.dp))
         Spacer(modifier = Modifier.width(16.dp))
         Text("Logout", fontSize = 16.sp, fontWeight = FontWeight.Medium, color = AccentColor)
