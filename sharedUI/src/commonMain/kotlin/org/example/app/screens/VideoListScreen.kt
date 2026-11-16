@@ -10,7 +10,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -18,16 +18,13 @@ import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import org.example.app.dummyVideos
-import org.example.app.core.ThemeState // 👈 گلوبل تھیم اسٹیٹ کی امپورٹ
+import org.example.app.core.ThemeState
 
 class VideoListScreen : Screen {
     @Composable
     override fun Content() {
         val navigator = LocalNavigator.currentOrThrow
         var selectedTab by remember { mutableStateOf(0) }
-        
-        // 👇 لوکل اسٹیٹ ہٹا دی، اب گلوبل ThemeState استعمال ہوگا
-        val isDarkMode = ThemeState.isDarkMode
 
         BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
             val isDesktop = maxWidth >= 840.dp
@@ -40,7 +37,7 @@ class VideoListScreen : Screen {
                 )
             } else {
                 MobileLayout(
-                    selectedTab = selectedAF = selectedTab,
+                    selectedTab = selectedTab,
                     onTabChange = { selectedTab = it },
                     navigator = navigator
                 )
@@ -49,7 +46,7 @@ class VideoListScreen : Screen {
     }
 }
 
-// ---------------- موبائل لے آؤٹ (تھیم کے رنگوں کے ساتھ) ----------------
+// ---------------- موبائل لے آؤٹ ----------------
 @Composable
 private fun MobileLayout(
     selectedTab: Int,
@@ -59,8 +56,8 @@ private fun MobileLayout(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { 
-                    Text("LOG", fontSize = 24.sp, fontWeight = FontWeight.Bold, letterSpacing = 2.sp, color = MaterialTheme.colorScheme.primary) 
+                title = {
+                    Text("LOG", fontSize = 24.sp, fontWeight = FontWeight.Bold, letterSpacing = 2.sp, color = MaterialTheme.colorScheme.primary)
                 },
                 actions = {
                     IconButton(onClick = { navigator.push(SearchScreen()) }) {
@@ -75,62 +72,78 @@ private fun MobileLayout(
         },
         bottomBar = {
             NavigationBar(
-                containerColor = MaterialTheme.colorScheme.surface, 
+                containerColor = MaterialTheme.colorScheme.surface,
                 contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
                 tonalElevation = 0.dp
             ) {
-                NavigationBarItem(
-                    icon = { Icon(Icons.Default.Home, contentDescription = "Home") },
-                    label = { Text("Home", fontSize = 10.sp) },
-                    selected = selectedTab == 0, 
-                    onClick = { onTabChange(0) },
-                    colors = NavigationBarItemDefaults.colors(selectedIconColor = MaterialTheme.colorScheme.primary, selectedTextColor = MaterialTheme.colorScheme.primary)
-                )
-                NavigationBarItem(
-                    icon = { Icon(Icons.Default.PlayCircle, contentDescription = "Reels") },
-                    label = { Text("Reels", fontSize = 10.sp) },
-                    selected = selectedTab == 1, 
-                    onClick = { onTabChange(1) },
-                    colors = NavigationBarItemDefaults.colors(selectedIconColor = MaterialTheme.colorScheme.primary, selectedTextColor = MaterialTheme.colorScheme.primary)
-                )
+                NavItem(Icons.Default.Home, "Home", selectedTab == 0) { onTabChange(0) }
+                NavItem(Icons.Default.PlayCircle, "Reels", selectedTab == 1) { onTabChange(1) }
+
+                // ➕ Add بٹن (درمیان، ہمیشہ بڑا)
                 NavigationBarItem(
                     icon = { Icon(Icons.Default.Add, contentDescription = "Add", modifier = Modifier.size(28.dp)) },
-                    label = { }, 
+                    label = { },
                     selected = false,
                     onClick = { onTabChange(2); navigator.push(UploadScreen()) },
-                    colors = NavigationBarItemDefaults.colors(selectedIconColor = MaterialTheme.colorScheme.primary, selectedTextColor = MaterialTheme.colorScheme.primary)
+                    colors = NavigationBarItemDefaults.colors(
+                        unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        indicatorColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
+                    )
                 )
-                NavigationBarItem(
-                    icon = { Icon(Icons.Default.Mail, contentDescription = "Inbox") },
-                    label = { Text("Inbox", fontSize = 10.sp) },
-                    selected = selectedTab == 3, 
-                    onClick = { onTabChange(3) },
-                    colors = NavigationBarItemDefaults.colors(selectedIconColor = MaterialTheme.colorScheme.primary, selectedTextColor = MaterialTheme.colorScheme.primary)
-                )
-                NavigationBarItem(
-                    icon = { Icon(Icons.Default.Person, contentDescription = "Profile") },
-                    label = { Text("Profile", fontSize = 10.sp) },
-                    selected = selectedTab == 4, 
-                    onClick = { onTabChange(4); navigator.push(ProfileScreen()) },
-                    colors = NavigationBarItemDefaults.colors(selectedIconColor = MaterialTheme.colorScheme.primary, selectedTextColor = MaterialTheme.colorScheme.primary)
-                )
+
+                NavItem(Icons.Default.Mail, "Inbox", selectedTab == 3) { onTabChange(3) }
+                NavItem(Icons.Default.Person, "Profile", selectedTab == 4) {
+                    onTabChange(4); navigator.push(ProfileScreen())
+                }
             }
         },
-        containerColor = MaterialTheme.colorScheme.background // 👈 پس منظر تھیم سے لے گا
+        containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
         VideoGrid(padding = padding, navigator = navigator, twoColumns = false)
     }
 }
 
-// ---------------- ڈیسکٹاپ لے آؤٹ (تھیم کے رنگوں کے ساتھ) ----------------
+// 👇 سلیکٹڈ ٹیب کا نیا انداز (تصویر کے مطابق)
+@Composable
+private fun NavItem(
+    icon: ImageVector,
+    label: String,
+    selected: Boolean,
+    onClick: () -> Unit
+) {
+    NavigationBarItem(
+        icon = {
+            Icon(
+                icon,
+                contentDescription = label,
+                modifier = Modifier.size(if (selected) 28.dp else 24.dp) // 👈 سلیکٹڈ پر بڑا
+            )
+        },
+        // 👇 لیبل صرف سلیکٹڈ آئیکن پر نظر آئے گا
+        label = {
+            if (selected) {
+                Text(label, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+            }
+        },
+        selected = selected,
+        onClick = onClick,
+        colors = NavigationBarItemDefaults.colors(
+            selectedIconColor = MaterialTheme.colorScheme.primary,
+            selectedTextColor = MaterialTheme.colorScheme.primary,
+            unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+            // 👇 indicator بہت ہلکا (تصویر جیسا)
+            indicatorColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
+        )
+    )
+}
+
+// ---------------- ڈیسکٹاپ لے آؤٹ ----------------
 @Composable
 private fun DesktopLayout(
     selectedTab: Int,
     onTabChange: (Int) -> Unit,
     navigator: cafe.adriel.voyager.navigator.Navigator
 ) {
-    // نوٹ: MaterialTheme wrapper ہٹا دیا گیا ہے کیونکہ App.kt پہلے ہی اسے ہینڈل کر رہا ہے
-    
     Scaffold(
         topBar = {
             TopAppBar(
@@ -153,25 +166,24 @@ private fun DesktopLayout(
                     }
                 },
                 actions = {
-                    TextButton(onClick = { navigator.push(UploadScreen()) }) { 
-                        Text("Upload", color = MaterialTheme.colorScheme.onSurface) 
+                    TextButton(onClick = { navigator.push(UploadScreen()) }) {
+                        Text("Upload", color = MaterialTheme.colorScheme.onSurface)
                     }
                     Spacer(modifier = Modifier.width(8.dp))
                     Button(
-                        onClick = { }, 
-                        shape = RoundedCornerShape(24.dp), 
+                        onClick = { },
+                        shape = RoundedCornerShape(24.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
-                    ) { 
-                        Text("Log in", color = MaterialTheme.colorScheme.onPrimary) 
+                    ) {
+                        Text("Log in", color = MaterialTheme.colorScheme.onPrimary)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface)
             )
         },
-        containerColor = MaterialTheme.colorScheme.background // 👈 پس منظر تھیم سے لے گا
+        containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
         Row(modifier = Modifier.fillMaxSize().padding(padding)) {
-            // سائیڈ مینو
             NavigationRail(
                 containerColor = MaterialTheme.colorScheme.surface,
                 header = { Icon(Icons.Default.Home, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.padding(bottom = 16.dp)) }
@@ -181,13 +193,11 @@ private fun DesktopLayout(
                 RailItem(Icons.Default.Mail, "Inbox", selectedTab == 2) { onTabChange(2) }
                 RailItem(Icons.Default.Person, "My Profile", selectedTab == 3) { onTabChange(3) }
                 RailItem(Icons.Default.Download, "Downloads", selectedTab == 4) { onTabChange(4) }
-                // 👇 ڈارک موڈ ٹوگل اب گلوبل ThemeState کو بدلتا ہے
-                RailItem(Icons.Default.DarkMode, "Dark Mode", selectedTab == 5) { ThemeState.isDarkMode = !ThemeState.isDarkMode } 
+                RailItem(Icons.Default.DarkMode, "Dark Mode", selectedTab == 5) { ThemeState.isDarkMode = !ThemeState.isDarkMode }
                 RailItem(Icons.Default.Settings, "Settings", selectedTab == 6) { onTabChange(6) }
                 RailItem(Icons.Default.Help, "Help Center", selectedTab == 7) { onTabChange(7) }
             }
-            
-            // مرکزی مواد
+
             Box(modifier = Modifier.weight(1f).fillMaxHeight().padding(16.dp)) {
                 when (selectedTab) {
                     0 -> VideoGrid(padding = PaddingValues(0.dp), navigator = navigator, twoColumns = true)
@@ -205,14 +215,14 @@ private fun DesktopLayout(
 }
 
 @Composable
-private fun RailItem(icon: androidx.compose.ui.graphics.vector.ImageVector, label: String, selected: Boolean, onClick: () -> Unit) {
+private fun RailItem(icon: ImageVector, label: String, selected: Boolean, onClick: () -> Unit) {
     NavigationRailItem(
         icon = { Icon(icon, contentDescription = null) },
         label = { Text(label, fontSize = 11.sp) },
         selected = selected,
         onClick = onClick,
         colors = NavigationRailItemDefaults.colors(
-            selectedIconColor = MaterialTheme.colorScheme.primary, 
+            selectedIconColor = MaterialTheme.colorScheme.primary,
             selectedTextColor = MaterialTheme.colorScheme.primary,
             unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
             unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
