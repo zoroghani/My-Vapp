@@ -66,9 +66,9 @@ private fun MobileLayout(
                     IconButton(onClick = { navigator.push(SearchScreen()) }) {
                         Icon(Icons.Default.Search, contentDescription = "Search", tint = MaterialTheme.colorScheme.onSurface)
                     }
-                    IconButton(onClick = { }) {
+                    IconButton(onClick = { navigator.push(NotificationsScreen()) }) {
                         Icon(Icons.Default.Notifications, contentDescription = "Notifications", tint = MaterialTheme.colorScheme.onSurface)
-                    }
+                   }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface)
             )
