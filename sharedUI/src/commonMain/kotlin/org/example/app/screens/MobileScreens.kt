@@ -165,7 +165,7 @@ class SettingsPage : Screen {
                     visualTransformation = androidx.compose.ui.text.input.PasswordVisualTransformation()
                 )
                 Button(
-                    onClick = { scope -> /* placeholder */ },
+                    onClick = { },
                     modifier = Modifier.fillMaxWidth().height(52.dp),
                     shape = RoundedCornerShape(14.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = AccentColor)
