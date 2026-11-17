@@ -24,9 +24,10 @@ import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import coil3.compose.AsyncImage
+import org.example.app.core.AuthState
 import org.example.app.core.ThemeState
 
-private val AccentColor = Color(0xFFFF4757)
+private val AccentColor = Color(0xFF3066E8)
 
 class ProfileScreen : Screen {
     @Composable
@@ -73,7 +74,10 @@ class ProfileScreen : Screen {
                         }
                     }
                     Spacer(modifier = Modifier.height(12.dp))
-                    Text("Andrew Ainsley", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
+                    Text(
+                        text = if (AuthState.userName.isNotBlank()) AuthState.userName else "Andrew Ainsley",
+                        fontSize = 18.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface
+                    )
                 }
 
                 // فہرست
@@ -85,7 +89,21 @@ class ProfileScreen : Screen {
                     ProfileRow(Icons.Default.LocationOn, "Location", value = "United States") { navigator.push(LocationPage()) }
                     ProfileRow(Icons.Default.Settings, "Settings") { navigator.push(SettingsPage()) }
                     ProfileRow(Icons.Outlined.Info, "Help Center") { navigator.push(HelpPage()) }
-                    LogoutRow { }
+                    
+                    Spacer(modifier = Modifier.height(16.dp))
+                    
+                    // ✅ یہاں Login / Logout کی منطق موجود ہے
+                    if (AuthState.isLoggedIn) {
+                        LogoutRow { 
+                            AuthState.isLoggedIn = false 
+                            AuthState.userName = ""
+                            AuthState.userEmail = ""
+                        }
+                    } else {
+                        ProfileRow(Icons.Default.Login, "Log in") { 
+                            navigator.push(AuthScreen()) 
+                        }
+                    }
                 }
                 Spacer(modifier = Modifier.height(24.dp))
             }
@@ -93,14 +111,16 @@ class ProfileScreen : Screen {
     }
 }
 
+// 👇 یہ تمام فنکشنز کلاس کے باہر ہیں، اس لیے انہیں کوئی ایرر نہیں آئے گا
+
 @Composable
 private fun ProfileRow(icon: ImageVector, label: String, value: String? = null, onClick: () -> Unit) {
     Row(modifier = Modifier.fillMaxWidth().clickable(onClick = onClick).padding(vertical = 16.dp), verticalAlignment = Alignment.CenterVertically) {
         Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.onSurface, modifier = Modifier.size(24.dp))
         Spacer(modifier = Modifier.width(16.dp))
         Text(label, fontSize = 16.sp, color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.weight(1f))
-        if (value != null) Text(value, fontSize = 14.sp, color = Color.Gray, modifier = Modifier.padding(end = 8.dp))
-        Icon(Icons.Default.ChevronRight, contentDescription = null, tint = Color.Gray, modifier = Modifier.size(20.dp))
+        if (value != null) Text(value, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(end = 8.dp))
+        Icon(Icons.Default.ChevronRight, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(20.dp))
     }
 }
 
@@ -119,12 +139,10 @@ private fun DarkModeRow() {
 }
 
 @Composable
-if (org.example.app.core.AuthState.isLoggedIn) {
-    LogoutRow { 
-        org.example.app.core.AuthState.isLoggedIn = false 
-    }
-} else {
-    ProfileRow(Icons.Default.Login, "Log in") { 
-        navigator.push(AuthScreen()) 
+private fun LogoutRow(onClick: () -> Unit) {
+    Row(modifier = Modifier.fillMaxWidth().clickable(onClick = onClick).padding(vertical = 16.dp), verticalAlignment = Alignment.CenterVertically) {
+        Icon(Icons.Default.Logout, contentDescription = null, tint = AccentColor, modifier = Modifier.size(24.dp))
+        Spacer(modifier = Modifier.width(16.dp))
+        Text("Logout", fontSize = 16.sp, fontWeight = FontWeight.Medium, color = AccentColor)
     }
 }
