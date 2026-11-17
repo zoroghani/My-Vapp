@@ -1,8 +1,8 @@
 package org.example.app.screens
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.sp
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import org.example.app.core.AuthState
 
 class AuthScreen : Screen {
 
@@ -38,203 +39,216 @@ class AuthScreen : Screen {
         var passwordVisible by remember { mutableStateOf(false) }
         var agreeTerms by remember { mutableStateOf(false) }
 
-        val snackbarHostState = remember { SnackbarHostState() }
-
-        // ✅ ای میل ویلیڈیشن
+        // ✅ ای میل درست ہے یا نہیں چیک کرنا
         val isEmailValid = remember(email) {
             email.matches(Regex("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$"))
         }
-        val strength = passwordStrength(password)
+        
+        // ✅ بٹن تبھی چلے گا جب ڈیٹا درست ہو
         val canSubmit = if (isLoginMode) {
             isEmailValid && password.length >= 6
         } else {
             fullName.isNotBlank() && isEmailValid && password.length >= 6 && agreeTerms
         }
 
-        Scaffold(
-            snackbarHost = { SnackbarHost(snackbarHostState) },
-            containerColor = MaterialTheme.colorScheme.background
-        ) { padding ->
-            Box(
-                modifier = Modifier.fillMaxSize().padding(padding),
-                contentAlignment = Alignment.Center
-            ) {
-                Column(
+        // 📱 ڈیسک ٹاپ اور موبائل کا سائز خودکار چیک کرنا
+        BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+            val isDesktop = maxWidth >= 840.dp
+
+            Scaffold(
+                containerColor = MaterialTheme.colorScheme.background
+            ) { padding ->
+                Box(
                     modifier = Modifier
-                        .then(
-                            if (isWide()) {
-                                Modifier.width(440.dp)
-                                    .clip(RoundedCornerShape(24.dp))
-                                    .background(MaterialTheme.colorScheme.surface)
-                            } else {
-                                Modifier.fillMaxSize()
-                            }
-                        )
-                        .verticalScroll(rememberScrollState())
-                        .padding(24.dp)
+                        .fillMaxSize()
+                        .padding(padding),
+                    contentAlignment = Alignment.Center
                 ) {
-                    // 🖥️ ڈیسک ٹاپ پر اوپر ایپ آئیکن
-                    if (isWide()) {
-                        Box(
-                            modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
+                    Column(
+                        modifier = Modifier
+                            .then(
+                                if (isDesktop) {
+                                    // ڈیسک ٹاپ کے لیے: درمیان میں کارڈ
+                                    Modifier.width(440.dp)
+                                        .clip(RoundedCornerShape(24.dp))
+                                        .background(MaterialTheme.colorScheme.surface)
+                                } else {
+                                    // موبائل کے لیے: پوری سکرین
+                                    Modifier.fillMaxSize()
+                                }
+                            )
+                            .verticalScroll(rememberScrollState())
+                            .padding(24.dp)
+                    ) {
+                        // 🖥️ ڈیسک ٹاپ پر اوپر ایپ کا لوگو
+                        if (isDesktop) {
                             Box(
-                                modifier = Modifier.size(64.dp).clip(RoundedCornerShape(16.dp))
-                                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)),
+                                modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
                                 contentAlignment = Alignment.Center
                             ) {
-                                Icon(Icons.Default.PlayCircle, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(32.dp))
+                                Box(
+                                    modifier = Modifier.size(64.dp).clip(RoundedCornerShape(16.dp))
+                                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(Icons.Default.PlayCircle, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(32.dp))
+                                }
                             }
                         }
-                    }
 
-                    // ہیڈر
-                    Text(
-                        text = if (isLoginMode) "Welcome Back" else "Create Account",
-                        fontSize = 26.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = if (isLoginMode) "Please enter your details to sign in." else "Please fill in the details to create your account.",
-                        fontSize = 14.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Spacer(modifier = Modifier.height(20.dp))
+                        // ہیڈر ٹیکسٹ
+                        Text(
+                            text = if (isLoginMode) "Welcome Back" else "Create Account",
+                            fontSize = 26.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = if (isLoginMode) "Please enter your details to sign in." else "Please fill in the details to create your account.",
+                            fontSize = 14.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Spacer(modifier = Modifier.height(20.dp))
 
-                    // 🔀 Log In / Sign Up سوئچر
-                    AuthTabSwitcher(isLoginMode) { isLoginMode = it }
-                    Spacer(modifier = Modifier.height(20.dp))
+                        // 🔀 Log In / Sign Up سوئچر
+                        AuthTabSwitcher(isLoginMode) { isLoginMode = it }
+                        Spacer(modifier = Modifier.height(20.dp))
 
-                    // 👤 Full Name (صرف Sign Up میں)
-                    if (!isLoginMode) {
-                        FieldLabel("Full Name")
+                        // 👤 نام (صرف Sign Up میں)
+                        if (!isLoginMode) {
+                            FieldLabel("Full Name")
+                            OutlinedTextField(
+                                value = fullName,
+                                onValueChange = { fullName = it },
+                                placeholder = { Text("e.g. John Doe") },
+                                leadingIcon = { Icon(Icons.Default.Person, contentDescription = null) },
+                                modifier = Modifier.fillMaxWidth(),
+                                singleLine = true,
+                                shape = RoundedCornerShape(14.dp)
+                            )
+                            Spacer(modifier = Modifier.height(14.dp))
+                        }
+
+                        // 📧 ای میل
+                        FieldLabel("Email Address")
                         OutlinedTextField(
-                            value = fullName,
-                            onValueChange = { fullName = it },
-                            placeholder = { Text("e.g. John Doe") },
-                            leadingIcon = { Icon(Icons.Default.Person, contentDescription = null) },
+                            value = email,
+                            onValueChange = { email = it },
+                            placeholder = { Text("name@company.com") },
+                            leadingIcon = { Icon(Icons.Default.Mail, contentDescription = null) },
+                            trailingIcon = {
+                                if (isEmailValid) {
+                                    Icon(Icons.Default.CheckCircle, contentDescription = "Valid", tint = Color(0xFF43A047))
+                                }
+                            },
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                             modifier = Modifier.fillMaxWidth(),
                             singleLine = true,
                             shape = RoundedCornerShape(14.dp)
                         )
                         Spacer(modifier = Modifier.height(14.dp))
-                    }
 
-                    // 📧 Email
-                    FieldLabel("Email Address")
-                    OutlinedTextField(
-                        value = email,
-                        onValueChange = { email = it },
-                        placeholder = { Text("name@company.com") },
-                        leadingIcon = { Icon(Icons.Default.Mail, contentDescription = null) },
-                        trailingIcon = {
-                            if (isEmailValid) {
-                                Icon(Icons.Default.CheckCircle, contentDescription = "Valid", tint = Color(0xFF43A047))
+                        // 🔒 پاسورڈ
+                        FieldLabel(if (isLoginMode) "Password" else "Create Password")
+                        OutlinedTextField(
+                            value = password,
+                            onValueChange = { password = it },
+                            placeholder = { Text("••••••••") },
+                            leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null) },
+                            trailingIcon = {
+                                IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                                    Icon(
+                                        if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
+                                        contentDescription = "Toggle password visibility"
+                                    )
+                                }
+                            },
+                            visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                            modifier = Modifier.fillMaxWidth(),
+                            singleLine = true,
+                            shape = RoundedCornerShape(14.dp)
+                        )
+
+                        // 💪 پاسورڈ کی طاقت (صرف Sign Up میں)
+                        if (!isLoginMode && password.isNotEmpty()) {
+                            Spacer(modifier = Modifier.height(8.dp))
+                            StrengthBars(passwordStrength(password))
+                        }
+
+                        // Forgot Password / Terms
+                        if (isLoginMode) {
+                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                                TextButton(onClick = { }) {
+                                    Text("Forgot Password?", fontSize = 13.sp, color = MaterialTheme.colorScheme.primary)
+                                }
                             }
-                        },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-                        modifier = Modifier.fillMaxWidth(),
-                        singleLine = true,
-                        shape = RoundedCornerShape(14.dp)
-                    )
-                    Spacer(modifier = Modifier.height(14.dp))
-
-                    // 🔒 Password
-                    FieldLabel(if (isLoginMode) "Password" else "Create Password")
-                    OutlinedTextField(
-                        value = password,
-                        onValueChange = { password = it },
-                        placeholder = { Text("••••••••") },
-                        leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null) },
-                        trailingIcon = {
-                            IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                                Icon(
-                                    if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
-                                    contentDescription = "Toggle password visibility"
+                        } else {
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Checkbox(
+                                    checked = agreeTerms,
+                                    onCheckedChange = { agreeTerms = it },
+                                    colors = CheckboxDefaults.colors(checkedColor = MaterialTheme.colorScheme.primary)
+                                )
+                                Text(
+                                    "I agree to the Terms & Privacy",
+                                    fontSize = 13.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
-                        },
-                        visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                        modifier = Modifier.fillMaxWidth(),
-                        singleLine = true,
-                        shape = RoundedCornerShape(14.dp)
-                    )
-
-                    // 💪 پاسورڈ سٹرینتھ (صرف Sign Up میں)
-                    if (!isLoginMode && password.isNotEmpty()) {
-                        Spacer(modifier = Modifier.height(8.dp))
-                        StrengthBars(strength)
-                    }
-
-                    // Forgot Password / Terms
-                    if (isLoginMode) {
-                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                            TextButton(onClick = { }) {
-                                Text("Forgot Password?", fontSize = 13.sp, color = MaterialTheme.colorScheme.primary)
-                            }
                         }
-                    } else {
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Checkbox(
-                                checked = agreeTerms,
-                                onCheckedChange = { agreeTerms = it },
-                                colors = CheckboxDefaults.colors(checkedColor = MaterialTheme.colorScheme.primary)
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        // ✅ مرکزی بٹن (لاگ ان / سائن اپ)
+                        Button(
+                            onClick = {
+                                // 👇 یہاں لاگ ان اسٹیٹ سیٹ ہو رہی ہے
+                                AuthState.isLoggedIn = true
+                                AuthState.userEmail = email
+                                if (!isLoginMode) AuthState.userName = fullName
+                                
+                                // 👇 سکرین بند کر کے واپس جائیں
+                                navigator.pop()
+                            },
+                            enabled = canSubmit,
+                            modifier = Modifier.fillMaxWidth().height(52.dp),
+                            shape = RoundedCornerShape(16.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.primary,
+                                contentColor = MaterialTheme.colorScheme.onPrimary
                             )
+                        ) {
                             Text(
-                                "I agree to the Terms & Privacy",
-                                fontSize = 13.sp,
+                                if (isLoginMode) "Sign In" else "Create Account",
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        // 🔁 موڈ تبدیل کرنے کا لنک
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.Center,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = if (isLoginMode) "Don't have an account? " else "Already have an account? ",
+                                fontSize = 14.sp,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
+                            Text(
+                                text = if (isLoginMode) "Sign Up" else "Log In",
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.clickable { isLoginMode = !isLoginMode }
+                            )
                         }
-                    }
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    // ✅ مرکزی بٹن
-                    Button(
-                        onClick = {
-                            // بعد میں یہاں اصل auth logic آئے گا
-                        },
-                        enabled = canSubmit,
-                        modifier = Modifier.fillMaxWidth().height(52.dp),
-                        shape = RoundedCornerShape(16.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.primary,
-                            contentColor = MaterialTheme.colorScheme.onPrimary
-                        )
-                    ) {
-                        Text(
-                            if (isLoginMode) "Sign In" else "Create Account",
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    // 🔁 موڈ تبدیل کرنے کا لنک
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.Center,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = if (isLoginMode) "Don't have an account? " else "Already have an account? ",
-                            fontSize = 14.sp,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Text(
-                            text = if (isLoginMode) "Sign Up" else "Log In",
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.clickable { isLoginMode = !isLoginMode }
-                        )
                     }
                 }
             }
@@ -242,16 +256,7 @@ class AuthScreen : Screen {
     }
 }
 
-// ---------- چھوٹے حصے ----------
-
-@Composable
-private fun BoxWithConstraintsScope.isWideBox(): Boolean = maxWidth >= 840.dp
-
-@Composable
-private fun isWide(): Boolean {
-    // سادہ طریقہ: Column کے اندر سے width نہیں ملتی، اس لیے BoxWithConstraints اوپر استعمال کریں
-    return false
-}
+// ---------- چھوٹے مددگار حصے ----------
 
 @Composable
 private fun FieldLabel(text: String) {
