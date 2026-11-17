@@ -2,8 +2,6 @@ package org.example.app.screens
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.RowScope
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -22,6 +20,7 @@ import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import org.example.app.dummyVideos
 import org.example.app.core.ThemeState
+import org.example.app.core.AuthState
 
 class VideoListScreen : Screen {
     @Composable
@@ -33,17 +32,9 @@ class VideoListScreen : Screen {
             val isDesktop = maxWidth >= 840.dp
 
             if (isDesktop) {
-                DesktopLayout(
-                    selectedTab = selectedTab,
-                    onTabChange = { selectedTab = it },
-                    navigator = navigator
-                )
+                DesktopLayout(selectedTab = selectedTab, onTabChange = { selectedTab = it }, navigator = navigator)
             } else {
-                MobileLayout(
-                    selectedTab = selectedTab,
-                    onTabChange = { selectedTab = it },
-                    navigator = navigator
-                )
+                MobileLayout(selectedTab = selectedTab, onTabChange = { selectedTab = it }, navigator = navigator)
             }
         }
     }
@@ -59,9 +50,7 @@ private fun MobileLayout(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = {
-                    Text("LOG", fontSize = 24.sp, fontWeight = FontWeight.Bold, letterSpacing = 2.sp, color = MaterialTheme.colorScheme.primary)
-                },
+                title = { Text("LOG", fontSize = 24.sp, fontWeight = FontWeight.Bold, letterSpacing = 2.sp, color = MaterialTheme.colorScheme.primary) },
                 actions = {
                     IconButton(onClick = { navigator.push(SearchScreen()) }) {
                         Icon(Icons.Default.Search, contentDescription = "Search", tint = MaterialTheme.colorScheme.onSurface)
@@ -84,8 +73,6 @@ private fun MobileLayout(
                     onTabChange(1)
                     navigator.push(ReelsScreen())
                 }
-
-                // ➕ Add بٹن (درمیان، ہمیشہ بڑا)
                 NavigationBarItem(
                     icon = { Icon(Icons.Default.Add, contentDescription = "Add", modifier = Modifier.size(28.dp)) },
                     label = { },
@@ -96,17 +83,18 @@ private fun MobileLayout(
                         indicatorColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
                     )
                 )
-
                 NavItem(Icons.Default.Mail, "Inbox", selectedTab == 3) {
                     onTabChange(3)
                     navigator.push(InboxScreen())
                 }
+                // ✅ یہاں Profile Tab کی Login/Signup منطق موجود ہے
                 NavItem(Icons.Default.Person, "Profile", selectedTab == 4) {
                     onTabChange(4)
-                    if (org.example.app.core.AuthState.isLoggedIn) {
-                    navigator.push(ProfileScreen())
-                } else {
-                    navigator.push(AuthScreen())
+                    if (AuthState.isLoggedIn) {
+                        navigator.push(ProfileScreen())
+                    } else {
+                        navigator.push(AuthScreen())
+                    }
                 }
             }
         },
@@ -116,7 +104,6 @@ private fun MobileLayout(
     }
 }
 
-// 👇 سلیکٹڈ ٹیب کا نیا انداز
 @Composable
 private fun RowScope.NavItem(   // <-- یہاں RowScope. شامل کیا ہے
     icon: ImageVector,
@@ -182,11 +169,13 @@ private fun DesktopLayout(
                     }
                     Spacer(modifier = Modifier.width(8.dp))
                     Button(
-                        onClick = { navigator.push(AuthScreen()) },
+                        onClick = { 
+                            if (!AuthState.isLoggedIn) navigator.push(AuthScreen()) 
+                        },
                         shape = RoundedCornerShape(24.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
                     ) {
-                        Text("Log in", color = MaterialTheme.colorScheme.onPrimary)
+                        Text(if (AuthState.isLoggedIn) "My Profile" else "Log in", color = MaterialTheme.colorScheme.onPrimary)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface)
@@ -213,14 +202,15 @@ private fun DesktopLayout(
             Box(modifier = Modifier.weight(1f).fillMaxHeight().padding(16.dp)) {
                 when (selectedTab) {
                     0 -> VideoGrid(padding = PaddingValues(0.dp), navigator = navigator, twoColumns = true)
-                    1 -> ReelsScreen().Content()          // 👈 .Content() لگانا ضروری ہے
-                    2 -> InboxScreen().Content()          // 👈 .Content() لگانا ضروری ہے
-                    3 -> ChannelScreen().Content()        // 👈 .Content() لگانا ضروری ہے
-                    4 -> DownloadsScreen()                // 👈 یہ @Composable فنکشن ہے، () کافی ہے
-                    5 -> MonetizationScreen().Content()   // 👈 .Content() لگانا ضروری ہے
+                    1 -> ReelsScreen().Content()
+                    2 -> InboxScreen().Content()
+                    // ✅ ڈیسک ٹاپ پر بھی Login چیک
+                    3 -> if (AuthState.isLoggedIn) ChannelScreen().Content() else AuthScreen().Content()
+                    4 -> DownloadsScreen()
+                    5 -> MonetizationScreen().Content()
                     6 -> VideoGrid(padding = PaddingValues(0.dp), navigator = navigator, twoColumns = true)
-                    7 -> SettingsScreen()                 // 👈 یہ @Composable فنکشن ہے
-                    8 -> HelpCenterScreen()               // 👈 یہ @Composable فنکشن ہے
+                    7 -> SettingsScreen()
+                    8 -> HelpCenterScreen()
                 }
             }
         }
@@ -243,7 +233,6 @@ private fun RailItem(icon: ImageVector, label: String, selected: Boolean, onClic
     )
 }
 
-// ---------------- مشترکہ ویڈیو گرڈ ----------------
 @Composable
 private fun VideoGrid(padding: PaddingValues, navigator: cafe.adriel.voyager.navigator.Navigator, twoColumns: Boolean = false) {
     LazyColumn(
