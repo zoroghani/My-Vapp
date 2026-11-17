@@ -7,25 +7,23 @@ import java.awt.Frame
 import java.io.File
 
 @Composable
-actual fun rememberVideoPicker(onVideoSelected: (String) -> Unit): () -> Unit {
+actual fun rememberVideoPicker(onVideoPicked: (String) -> Unit): () -> Unit {
     return remember {
         {
-            // ڈیسک ٹاپ کے لیے ایک عارضی Frame بنائیں تاکہ ڈائیلاگ اس سے جڑ سکے
-            val frame = Frame()
-            val dialog = FileDialog(frame, "ویڈیو منتخب کریں", FileDialog.LOAD)
-            
-            // صرف ویڈیو فائلز دکھانے کی کوشش کریں (macOS پر یہ کام کرتا ہے)
-            dialog.file = "*.mp4" 
-            
-            dialog.isVisible = true
-            
-            // اگر صارف نے فائل منتخب کی
-            dialog.file?.let { fileName ->
-                val file = File(dialog.directory, fileName)
-                onVideoSelected(file.absolutePath)
+            val dialog = FileDialog(null as Frame?, "Select Video", FileDialog.LOAD)
+            dialog.filenameFilter = java.io.FilenameFilter { _, name ->
+                name.lowercase().let {
+                    it.endsWith(".mp4") || it.endsWith(".mov") || it.endsWith(".avi") ||
+                    it.endsWith(".mkv") || it.endsWith(".webm")
+                }
             }
-            
-            frame.dispose() // صفائی
+            dialog.isVisible = true
+            val fileName = dialog.file
+            val directory = dialog.directory
+            if (fileName != null && directory != null) {
+                val f = File(directory, fileName)
+                onVideoPicked("${f.absolutePath}|${f.length()}")
+            }
         }
     }
 }
