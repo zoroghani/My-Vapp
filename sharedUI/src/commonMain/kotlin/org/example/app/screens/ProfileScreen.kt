@@ -119,10 +119,12 @@ private fun DarkModeRow() {
 }
 
 @Composable
-private fun LogoutRow(onClick: () -> Unit) {
-    Row(modifier = Modifier.fillMaxWidth().clickable(onClick = onClick).padding(vertical = 16.dp), verticalAlignment = Alignment.CenterVertically) {
-        Icon(Icons.Default.Logout, contentDescription = null, tint = AccentColor, modifier = Modifier.size(24.dp))
-        Spacer(modifier = Modifier.width(16.dp))
-        Text("Logout", fontSize = 16.sp, fontWeight = FontWeight.Medium, color = AccentColor)
+if (org.example.app.core.AuthState.isLoggedIn) {
+    LogoutRow { 
+        org.example.app.core.AuthState.isLoggedIn = false 
+    }
+} else {
+    ProfileRow(Icons.Default.Login, "Log in") { 
+        navigator.push(AuthScreen()) 
     }
 }
