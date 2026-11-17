@@ -1,17 +1,13 @@
 package org.example.app.screens
 
-import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.tween
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.* // 👈 تمام Default آئیکنز
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -19,185 +15,265 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import org.example.app.core.platform.extractVideoThumbnail
+import kotlinx.coroutines.delay
 import org.example.app.core.platform.rememberVideoPicker
 
+// 📋 تمام کیٹیگریز (تصویر 2 کے مطابق)
+private val videoCategories = listOf(
+    "None", "Autos & Vehicles", "Comedy", "Education", "Entertainment",
+    "Film & Animation", "Fashion & Beauty", "Gaming", "Music",
+    "News & Politics", "Nonprofits & Activism", "People & Blogs",
+    "Pets & Animals", "Science & Technology", "Sports", "Travel & Events"
+)
+
 class UploadScreen : Screen {
+
     @Composable
     override fun Content() {
         val navigator = LocalNavigator.currentOrThrow
-        
+
         var videoPath by remember { mutableStateOf<String?>(null) }
-        var thumbnailBitmap by remember { mutableStateOf<ImageBitmap?>(null) }
+        var isUploading by remember { mutableStateOf(false) }
+        var progress by remember { mutableStateOf(0f) }
+        var isUploaded by remember { mutableStateOf(false) }
+
         var title by remember { mutableStateOf("") }
         var description by remember { mutableStateOf("") }
-        var isUploading by remember { mutableStateOf(false) }
-        var uploadProgress by remember { mutableStateOf(0f) }
-        
-        val progressAnim = remember { Animatable(0f) }
-        LaunchedEffect(uploadProgress) {
-            progressAnim.animateTo(uploadProgress, tween(500))
+        var category by remember { mutableStateOf<String?>(null) }
+        var categoryExpanded by remember { mutableStateOf(false) }
+
+        val snackbarHostState = remember { SnackbarHostState() }
+
+        // 🎬 ویڈیو پکر — فائل منتخب ہوتے ہی اپلوڈنگ شروع
+        val pickVideo = rememberVideoPicker { path ->
+            videoPath = path
+            isUploading = true
+            progress = 0f
+            isUploaded = false
         }
 
-        val launchVideoPicker = rememberVideoPicker { path ->
-            videoPath = path
-            
-            // 👈 اب یہ سادہ اور کراس پلیٹ فارم ہے
-            kotlinx.coroutines.GlobalScope.launch(Dispatchers.IO) {
-                val thumb = extractVideoThumbnail(path)
-                withContext(Dispatchers.Main) {
-                    thumbnailBitmap = thumb
+        // 📊 simulated اپلوڈنگ پروگریس (0 → 100)
+        LaunchedEffect(isUploading) {
+            if (isUploading) {
+                while (progress < 1f) {
+                    delay(40)
+                    progress = (progress + 0.012f).coerceAtMost(1f)
                 }
+                isUploading = false
+                isUploaded = true
             }
         }
+
+        val canUpload = title.isNotBlank() && category != null && !isUploading
 
         Scaffold(
             topBar = {
                 TopAppBar(
-                    title = {
-                        Text(text = "Upload", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Color.White)
-                    },
+                    title = { Text("Upload Video", fontSize = 20.sp, fontWeight = FontWeight.Bold) },
                     navigationIcon = {
                         IconButton(onClick = { navigator.pop() }) {
-                            Icon(
-                                Icons.Default.ArrowBack, // 👈 سادہ ArrowBack استعمال کیا
-                                contentDescription = "Back",
-                                tint = Color.White
-                            )
+                            Icon(Icons.Default.ArrowBack, contentDescription = "Back")
                         }
                     },
-                    colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.surface,
+                        titleContentColor = MaterialTheme.colorScheme.onSurface
+                    )
                 )
             },
-            containerColor = Color.Transparent
+            snackbarHost = { SnackbarHost(snackbarHostState) },
+            containerColor = MaterialTheme.colorScheme.background
         ) { padding ->
-            Box(
+            Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(padding)
-                    .background(
-                        Brush.verticalGradient(
-                            colors = listOf(Color(0xFF6A1B9A), Color(0xFF4A148C), Color(0xFF311B92))
-                        )
-                    )
+                    .verticalScroll(rememberScrollState())
+                    .padding(16.dp)
             ) {
-                Column(
+                // 1️⃣ اوپر والا حصہ: Select file / Uploading
+                Box(
                     modifier = Modifier
-                        .fillMaxSize()
-                        .verticalScroll(rememberScrollState())
+                        .fillMaxWidth()
+                        .height(180.dp)
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(
+                            if (videoPath != null)
+                                Brush.verticalGradient(listOf(Color(0xFF7FD8C4), Color(0xFF2E6E7E)))
+                            else
+                                Brush.verticalGradient(listOf(MaterialTheme.colorScheme.surfaceVariant, MaterialTheme.colorScheme.surfaceVariant))
+                        )
                 ) {
-                    // ویڈیو پریویو
-                    if (thumbnailBitmap != null) {
-                        Box(modifier = Modifier.fillMaxWidth().height(280.dp)) {
-                            Image(
-                                bitmap = thumbnailBitmap!!,
-                                contentDescription = "Video Preview",
-                                modifier = Modifier.fillMaxSize(),
-                                contentScale = ContentScale.Crop
+                    if (videoPath == null) {
+                        // 🔹 ابتدائی حالت: پلی آئیکن + Select file
+                        Column(
+                            modifier = Modifier.fillMaxSize(),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            Icon(
+                                Icons.Default.PlayCircle,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(56.dp)
                             )
-                            Box(modifier = Modifier.fillMaxSize().background(Color(0xFF6A1B9A).copy(alpha = 0.4f)))
-                            
-                            if (isUploading) {
-                                Column(modifier = Modifier.align(Alignment.Center), horizontalAlignment = Alignment.CenterHorizontally) {
-                                    Text(text = "UPLOADING...", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
-                                    Spacer(modifier = Modifier.height(8.dp))
-                                    Text(text = "${(progressAnim.value * 100).toInt()}% completed", color = Color.White.copy(alpha = 0.9f), fontSize = 14.sp)
-                                }
+                            Spacer(modifier = Modifier.height(12.dp))
+                            Button(
+                                onClick = { pickVideo() },
+                                shape = RoundedCornerShape(20.dp),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = MaterialTheme.colorScheme.onSurface,
+                                    contentColor = MaterialTheme.colorScheme.surface
+                                )
+                            ) {
+                                Text("Select file", fontWeight = FontWeight.Bold)
                             }
                         }
                     } else {
-                        Box(
-                            modifier = Modifier.fillMaxWidth().height(280.dp).background(Color(0xFF6A1B9A).copy(alpha = 0.4f)),
-                            contentAlignment = Alignment.Center
+                        // 🔹 اپلوڈنگ / مکمل حالت: "Uploading... X%" + بار
+                        Column(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(20.dp),
+                            verticalArrangement = Arrangement.Bottom
                         ) {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Icon(Icons.Default.VideoLibrary, contentDescription = null, modifier = Modifier.size(64.dp), tint = Color.White.copy(alpha = 0.7f))
-                                Spacer(modifier = Modifier.height(12.dp))
-                                Text(text = "ویڈیو منتخب کریں", color = Color.White, fontSize = 16.sp)
-                            }
-                        }
-                    }
-                    
-                    // فارم کارڈ
-                    Card(
-                        modifier = Modifier.fillMaxWidth().padding(16.dp),
-                        shape = RoundedCornerShape(20.dp),
-                        colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.95f)),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
-                    ) {
-                        Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                            OutlinedTextField(
-                                value = title,
-                                onValueChange = { title = it },
-                                label = { Text("Title") },
-                                modifier = Modifier.fillMaxWidth(),
-                                singleLine = true,
-                                colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = Color(0xFF6A1B9A), focusedLabelColor = Color(0xFF6A1B9A))
-                            )
-                            
-                            OutlinedTextField(
-                                value = description,
-                                onValueChange = { description = it },
-                                label = { Text("Description") },
-                                modifier = Modifier.fillMaxWidth().height(100.dp),
-                                colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = Color(0xFF6A1B9A), focusedLabelColor = Color(0xFF6A1B9A))
-                            )
-                            
-                            if (isUploading) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(
+                                    text = if (isUploaded) "Uploaded!" else "Uploading...",
+                                    color = Color.White,
+                                    fontSize = 18.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                                Spacer(modifier = Modifier.width(12.dp))
                                 LinearProgressIndicator(
-                                    progress = { progressAnim.value },
-                                    modifier = Modifier.fillMaxWidth().height(8.dp).clip(RoundedCornerShape(4.dp)),
-                                    color = Color(0xFF6A1B9A),
-                                    trackColor = Color(0xFF6A1B9A).copy(alpha = 0.2f)
+                                    progress = { progress },
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .height(8.dp)
+                                        .clip(RoundedCornerShape(4.dp)),
+                                    color = Color(0xFF3066E8),
+                                    trackColor = Color.White.copy(alpha = 0.4f)
                                 )
                             }
-                            
-                            Button(
-                                onClick = {
-                                    if (videoPath != null && title.isNotBlank()) {
-                                        isUploading = true
-                                        kotlinx.coroutines.GlobalScope.launch(Dispatchers.Main) {
-                                            for (i in 1..100) {
-                                                kotlinx.coroutines.delay(30)
-                                                uploadProgress = i / 100f
-                                            }
-                                            isUploading = false
-                                            navigator.push(VideoPlayerScreen(videoPath!!, title))
-                                        }
-                                    }
-                                },
-                                modifier = Modifier.fillMaxWidth().height(56.dp),
-                                enabled = videoPath != null && title.isNotBlank() && !isUploading,
-                                shape = RoundedCornerShape(16.dp),
-                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6A1B9A))
-                            ) {
-                                Text(text = if (isUploading) "UPLOADING..." else "UPLOAD", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.White)
-                            }
+                            Spacer(modifier = Modifier.height(6.dp))
+                            Text(
+                                text = "${(progress * 100).toInt()}%",
+                                color = Color.White,
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Medium,
+                                modifier = Modifier.align(Alignment.CenterHorizontally)
+                            )
                         }
                     }
                 }
-                
-                if (videoPath == null && !isUploading) {
-                    FloatingActionButton(
-                        onClick = { launchVideoPicker() },
-                        modifier = Modifier.align(Alignment.BottomEnd).padding(24.dp),
-                        containerColor = Color(0xFF6A1B9A),
-                        shape = CircleShape
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                // 2️⃣ Title فیلڈ + 0/100 کاؤنٹر
+                Text("Title", fontSize = 13.sp, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Spacer(modifier = Modifier.height(6.dp))
+                OutlinedTextField(
+                    value = title,
+                    onValueChange = { if (it.length <= 100) title = it },
+                    placeholder = { Text("Create a title") },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    shape = RoundedCornerShape(12.dp)
+                )
+                Text(
+                    text = "${title.length}/100",
+                    fontSize = 12.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 4.dp),
+                    textAlign = androidx.compose.ui.text.style.TextAlign.End
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // 3️⃣ Description فیلڈ
+                OutlinedTextField(
+                    value = description,
+                    onValueChange = { description = it },
+                    placeholder = { Text("Add description") },
+                    label = { Text("Description") },
+                    modifier = Modifier.fillMaxWidth().height(130.dp),
+                    shape = RoundedCornerShape(12.dp)
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // 4️⃣ Category ڈراپ ڈاؤن
+                Box {
+                    OutlinedTextField(
+                        value = category ?: "",
+                        onValueChange = { },
+                        label = { Text("Category") },
+                        placeholder = { Text("Select category") },
+                        readOnly = true,
+                        trailingIcon = {
+                            Icon(Icons.Default.ExpandMore, contentDescription = null)
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { categoryExpanded = true },
+                        shape = RoundedCornerShape(12.dp)
+                    )
+                    DropdownMenu(
+                        expanded = categoryExpanded,
+                        onDismissRequest = { categoryExpanded = false },
+                        modifier = Modifier.heightIn(max = 320.dp),
+                        containerColor = MaterialTheme.colorScheme.surface
                     ) {
-                        Icon(Icons.Default.Add, contentDescription = "Select Video", tint = Color.White, modifier = Modifier.size(28.dp))
+                        videoCategories.forEach { cat ->
+                            DropdownMenuItem(
+                                text = {
+                                    Text(
+                                        cat,
+                                        fontWeight = if (cat == category) FontWeight.Bold else FontWeight.Normal
+                                    )
+                                },
+                                onClick = {
+                                    category = cat
+                                    categoryExpanded = false
+                                },
+                                leadingIcon = {
+                                    if (cat == category) {
+                                        Icon(Icons.Default.Check, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                                    }
+                                }
+                            )
+                        }
                     }
                 }
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // 5️⃣ Upload بٹن
+                Button(
+                    onClick = {
+                        snackbarHostState.showSnackbar("Video uploaded successfully! 🎉")
+                        navigator.pop()
+                    },
+                    enabled = canUpload,
+                    modifier = Modifier.fillMaxWidth().height(52.dp),
+                    shape = RoundedCornerShape(26.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFF3066E8),
+                        contentColor = Color.White
+                    )
+                ) {
+                    Text("Upload", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
             }
         }
     }
