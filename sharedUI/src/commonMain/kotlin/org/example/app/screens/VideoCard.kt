@@ -4,6 +4,8 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -57,10 +59,34 @@ fun VideoCard(
                     }
                 }
                 // تصویر کے اوپر آئیکن ہمیشہ سفید رہے گا
-                IconButton(onClick = { }, modifier = Modifier.align(Alignment.TopEnd).padding(4.dp)) {
-                    Icon(Icons.Default.MoreVert, contentDescription = "More", tint = Color.White)
-                }
-            }
+                var isMenuExpanded by remember { mutableStateOf(false) }
+
+                Box(modifier = Modifier.align(Alignment.TopEnd).padding(4.dp)) {
+                 IconButton(onClick = { isMenuExpanded = true }) {
+                 Icon(Icons.Default.MoreVert, contentDescription = "More", tint = Color.White)
+             }
+                 DropdownMenu(
+                 expanded = isMenuExpanded,
+                 onDismissRequest = { isMenuExpanded = false },
+                 containerColor = MaterialTheme.colorScheme.surface
+          ) {
+                DropdownMenuItem(
+                 text = { Text("Share") },
+                   onClick = { isMenuExpanded = false },
+                   leadingIcon = { Icon(Icons.Default.Share, contentDescription = null) }
+             )
+                DropdownMenuItem(
+                 text = { Text("Download") },
+                 onClick = { isMenuExpanded = false },
+                 leadingIcon = { Icon(Icons.Default.Download, contentDescription = null) }
+             )
+                DropdownMenuItem(
+                 text = { Text("Report") },
+                 onClick = { isMenuExpanded = false },
+                 leadingIcon = { Icon(Icons.Default.Flag, contentDescription = null) }
+             )
+        }
+   }
             
             Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.Top) {
                 AsyncImage(
