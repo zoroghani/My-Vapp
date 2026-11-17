@@ -63,31 +63,50 @@ fun VideoCard(
                 var isMenuExpanded by remember { mutableStateOf(false) }
 
                 Box(modifier = Modifier.align(Alignment.TopEnd).padding(4.dp)) {
-                 IconButton(onClick = { isMenuExpanded = true }) {
-                 Icon(Icons.Default.MoreVert, contentDescription = "More", tint = Color.White)
-             }
-                 DropdownMenu(
-                 expanded = isMenuExpanded,
-                 onDismissRequest = { isMenuExpanded = false },
-                 containerColor = MaterialTheme.colorScheme.surface
-          ) {
-                DropdownMenuItem(
-                 text = { Text("Share") },
-                   onClick = { isMenuExpanded = false },
-                   leadingIcon = { Icon(Icons.Default.Share, contentDescription = null) }
-             )
-                DropdownMenuItem(
-                 text = { Text("Download") },
-                 onClick = { isMenuExpanded = false },
-                 leadingIcon = { Icon(Icons.Default.Download, contentDescription = null) }
-             )
-                DropdownMenuItem(
-                 text = { Text("Report") },
-                 onClick = { isMenuExpanded = false },
-                 leadingIcon = { Icon(Icons.Default.Flag, contentDescription = null) }
-             )
-        }
-   }
+                    IconButton(onClick = { isMenuExpanded = true }) {
+                        Icon(Icons.Default.MoreVert, contentDescription = "More", tint = Color.White)
+                    }
+                    DropdownMenu(
+                        expanded = isMenuExpanded,
+                        onDismissRequest = { isMenuExpanded = false },
+                        containerColor = MaterialTheme.colorScheme.surface
+                    ) {
+                        // 👇 اگر اپنی ویڈیو ہے تو Edit اور Delete دکھائیں
+                        if (isOwner) {
+                            DropdownMenuItem(
+                                text = { Text("Edit") },
+                                onClick = { isMenuExpanded = false },
+                                leadingIcon = { Icon(Icons.Default.Edit, contentDescription = null) }
+                            )
+                            DropdownMenuItem(
+                                text = { Text("Delete") },
+                                onClick = { isMenuExpanded = false },
+                                leadingIcon = { Icon(Icons.Default.Delete, contentDescription = null) },
+                                colors = MenuItemDefaults.colors(textColor = MaterialTheme.colorScheme.error)
+                            )
+                       } 
+                        // 👇 اگر دوسرے کی ویڈیو ہے تو Report دکھائیں
+                        else {
+                            DropdownMenuItem(
+                                text = { Text("Report") },
+                                onClick = { isMenuExpanded = false },
+                                leadingIcon = { Icon(Icons.Default.Flag, contentDescription = null) }
+                            )
+                        }
+
+                        // 👇 یہ دونوں (Share, Download) ہر جگہ مشترک ہیں
+                            DropdownMenuItem(
+                                text = { Text("Share") },
+                                onClick = { isMenuExpanded = false },
+                                leadingIcon = { Icon(Icons.Default.Share, contentDescription = null) }
+                            )
+                            DropdownMenuItem(
+                                text = { Text("Download") },
+                                onClick = { isMenuExpanded = false },
+                                leadingIcon = { Icon(Icons.Default.Download, contentDescription = null) }
+                            )
+                      }
+               }
             
             Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.Top) {
                 AsyncImage(
