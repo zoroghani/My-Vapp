@@ -3,6 +3,7 @@ package org.example.app.screens
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import org.example.app.core.platform.rememberImagePicker
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
@@ -33,6 +34,7 @@ class ProfileScreen : Screen {
     @Composable
     override fun Content() {
         val navigator = LocalNavigator.currentOrThrow
+        val pickImage = rememberImagePicker { bytes -> AuthState.profileImage = bytes }
 
         Scaffold(
             topBar = {
@@ -61,15 +63,17 @@ class ProfileScreen : Screen {
                 ) {
                     Box {
                         AsyncImage(
-                            model = "https://picsum.photos/seed/profile/200/200",
+                            model = AuthState.profileImage ?: "https://picsum.photos/seed/profile/200/200",
                             contentDescription = "Profile Picture",
                             modifier = Modifier.size(100.dp).clip(CircleShape),
                             contentScale = ContentScale.Crop
                         )
                         Box(
-                            modifier = Modifier.align(Alignment.BottomEnd).size(28.dp).clip(CircleShape).background(AccentColor),
+                            modifier = Modifier.align(Alignment.BottomEnd).size(28.dp).clip(CircleShape)
+                                .background(AccentColor)
+                                .clickable { pickImage() },   // 👈 یہاں pickImage() کال ہو رہا ہے
                             contentAlignment = Alignment.Center
-                        ) {
+                         ) {
                             Icon(Icons.Default.Edit, contentDescription = "Edit", tint = Color.White, modifier = Modifier.size(14.dp))
                         }
                     }
