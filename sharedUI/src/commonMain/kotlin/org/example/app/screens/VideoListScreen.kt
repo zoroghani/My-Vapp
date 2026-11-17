@@ -103,7 +103,10 @@ private fun MobileLayout(
                 }
                 NavItem(Icons.Default.Person, "Profile", selectedTab == 4) {
                     onTabChange(4)
+                    if (org.example.app.core.AuthState.isLoggedIn) {
                     navigator.push(ProfileScreen())
+                } else {
+                    navigator.push(AuthScreen())
                 }
             }
         },
