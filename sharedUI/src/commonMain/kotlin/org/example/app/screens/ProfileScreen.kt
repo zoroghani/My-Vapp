@@ -86,7 +86,7 @@ class ProfileScreen : Screen {
 
                 // فہرست
                 Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
-                    ProfileRow(Icons.Default.PlayCircle, "My Profile") { navigator.push(ChannelScreen()) }
+                    ProfileRow(Icons.AccountCircle, "My Profile") { navigator.push(ChannelScreen()) }
                     ProfileRow(Icons.Default.Download, "Downloads") { navigator.push(DownloadsPage()) }
                     ProfileRow(Icons.Default.MonetizationOn, "Monetization") { navigator.push(MonetizationScreen()) }
                     DarkModeRow()
