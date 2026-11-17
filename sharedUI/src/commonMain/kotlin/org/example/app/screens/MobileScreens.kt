@@ -3,6 +3,10 @@ package org.example.app.screens
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.MenuItemDefaults
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -51,7 +55,10 @@ class DownloadsPage : Screen {
     @Composable
     override fun Content() {
         val navigator = LocalNavigator.currentOrThrow
-        val downloaded = dummyVideos.take(2) // ڈیمو: پہلی 2 ویڈیوز محفوظ
+        // 👇 mutableStateListOf تاکہ delete کام کرے
+        val downloaded = remember {
+            mutableStateListOf(*dummyVideos.take(2).toTypedArray())
+        }
 
         Scaffold(
             topBar = { PageTopBar("Downloads") { navigator.pop() } },
@@ -59,7 +66,7 @@ class DownloadsPage : Screen {
         ) { padding ->
             if (downloaded.isEmpty()) {
                 Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
-                    Text("No downloads yet", color = Color.Gray)
+                    Text("No downloads yet", color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             } else {
                 Column(
@@ -67,6 +74,8 @@ class DownloadsPage : Screen {
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     downloaded.forEach { video ->
+                        var isMenuExpanded by remember { mutableStateOf(false) }
+
                         Card(
                             shape = RoundedCornerShape(14.dp),
                             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
@@ -81,7 +90,7 @@ class DownloadsPage : Screen {
                                 Spacer(modifier = Modifier.width(12.dp))
                                 Column(modifier = Modifier.weight(1f)) {
                                     Text(video.title, fontWeight = FontWeight.Bold, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurface)
-                                    Text(video.channel, fontSize = 12.sp, color = Color.Gray)
+                                    Text(video.channel, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                     Spacer(modifier = Modifier.height(4.dp))
                                     Row(verticalAlignment = Alignment.CenterVertically) {
                                         Icon(Icons.Default.CheckCircle, contentDescription = null, tint = Color(0xFF008060), modifier = Modifier.size(14.dp))
@@ -89,8 +98,27 @@ class DownloadsPage : Screen {
                                         Text("Downloaded • ${video.duration}", fontSize = 11.sp, color = Color(0xFF008060))
                                     }
                                 }
-                                IconButton(onClick = { navigator.push(VideoPlayerScreen(video.videoUrl, video.title)) }) {
-                                    Icon(Icons.Default.PlayCircle, contentDescription = "Play", tint = AccentColor)
+
+                                // 👇 play بٹن ہٹا کر 3 ڈاٹ مینیو
+                                Box {
+                                    IconButton(onClick = { isMenuExpanded = true }) {
+                                        Icon(Icons.Default.MoreVert, contentDescription = "More", tint = MaterialTheme.colorScheme.onSurface)
+                                    }
+                                    DropdownMenu(
+                                        expanded = isMenuExpanded,
+                                        onDismissRequest = { isMenuExpanded = false },
+                                        containerColor = MaterialTheme.colorScheme.surface
+                                    ) {
+                                        DropdownMenuItem(
+                                            text = { Text("Delete") },
+                                            onClick = {
+                                                downloaded.remove(video)
+                                                isMenuExpanded = false
+                                            },
+                                            leadingIcon = { Icon(Icons.Default.Delete, contentDescription = null) },
+                                            colors = MenuItemDefaults.colors(textColor = MaterialTheme.colorScheme.error)
+                                        )
+                                    }
                                 }
                             }
                         }
