@@ -27,7 +27,8 @@ import org.example.app.DummyVideo
 fun VideoCard(
     video: DummyVideo,
     onVideoClick: () -> Unit,
-    onChannelClick: () -> Unit
+    onChannelClick: () -> Unit,
+    isOwner: Boolean = false  // 👈 یہ نیا پیرامیٹر شامل کریں
 ) {
     Card(
         onClick = onVideoClick,
