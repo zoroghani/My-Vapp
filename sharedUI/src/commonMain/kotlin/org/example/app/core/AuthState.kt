@@ -9,4 +9,5 @@ object AuthState {
     var isLoggedIn by mutableStateOf(false)
     var userName by mutableStateOf("")
     var userEmail by mutableStateOf("")
+    var profileImage by mutableStateOf<ByteArray?>(null)
 }
