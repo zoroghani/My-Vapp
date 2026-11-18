@@ -427,3 +427,4 @@ if (isCommentsExpanded) {
         }
     }
 }
+}
