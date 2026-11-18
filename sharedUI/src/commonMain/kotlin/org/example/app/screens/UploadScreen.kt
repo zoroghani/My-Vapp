@@ -25,6 +25,7 @@ import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import kotlinx.coroutines.delay
 import org.example.app.core.platform.rememberVideoPicker
+import org.example.app.core.platform.VideoThumbnail
 
 // 📋 تمام کیٹیگریز (تصویر 2 کے مطابق)
 private val videoCategories = listOf(
