@@ -51,6 +51,7 @@ class UploadScreen : Screen {
         var categoryExpanded by remember { mutableStateOf(false) }
 
         val snackbarHostState = remember { SnackbarHostState() }
+        val scope = rememberCoroutineScope()
 
         // 🎬 ویڈیو پکر — فائل منتخب ہوتے ہی اپلوڈنگ شروع
         val pickVideo = rememberVideoPicker { path ->
@@ -260,10 +261,12 @@ class UploadScreen : Screen {
 
                 // 5️⃣ Upload بٹن
                 Button(
-                    onClick = {
-                        snackbarHostState.showSnackbar("Video uploaded successfully! 🎉")
-                        navigator.pop()
-                    },
+                       onClick = {
+                           scope.launch {
+                             snackbarHostState.showSnackbar("Video uploaded successfully! 🎉")
+                         }
+                         navigator.pop()
+                       }
                     enabled = canUpload,
                     modifier = Modifier.fillMaxWidth().height(52.dp),
                     shape = RoundedCornerShape(26.dp),
