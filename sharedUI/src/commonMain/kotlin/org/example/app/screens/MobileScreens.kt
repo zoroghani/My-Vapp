@@ -109,13 +109,12 @@ class DownloadsPage : Screen {
                                         containerColor = MaterialTheme.colorScheme.surface
                                     ) {
                                         DropdownMenuItem(
-                                            text = { Text("Delete") },
+                                            text = { Text("Delete", color = MaterialTheme.colorScheme.error) },
                                             onClick = {
                                                 downloaded.remove(video)
                                                 isMenuExpanded = false
                                             },
-                                            leadingIcon = { Icon(Icons.Default.Delete, contentDescription = null) },
-                                            colors = MenuItemDefaults.colors(textColor = MaterialTheme.colorScheme.error)
+                                            leadingIcon = { Icon(Icons.Default.Delete, contentDescription = null, tint = MaterialTheme.colorScheme.error) }
                                         )
                                     }
                                 }
