@@ -4,14 +4,12 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.* // 👈 تمام آئیکنز کی امپورٹ
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.* // 👈 remember اور mutableStateOf کی امپورٹ
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -28,15 +26,12 @@ fun VideoCard(
     video: DummyVideo,
     onVideoClick: () -> Unit,
     onChannelClick: () -> Unit,
-    isOwner: Boolean = false  // 👈 یہ نیا پیرامیٹر شامل کریں
+    isOwner: Boolean = false
 ) {
     Card(
         onClick = onVideoClick,
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(
-            // ✅ تھیم کے مطابق سطح کا رنگ (لائٹ میں سفید، ڈارک میں گہرا سرمئی)
-            containerColor = MaterialTheme.colorScheme.surface
-        ),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.2f))
     ) {
@@ -59,9 +54,9 @@ fun VideoCard(
                         Text(video.duration, color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.Medium)
                     }
                 }
-                // تصویر کے اوپر آئیکن ہمیشہ سفید رہے گا
+                
+                // 👇 3 ڈاٹ مینیو (درست امپورٹس اور بریسز کے ساتھ)
                 var isMenuExpanded by remember { mutableStateOf(false) }
-
                 Box(modifier = Modifier.align(Alignment.TopEnd).padding(4.dp)) {
                     IconButton(onClick = { isMenuExpanded = true }) {
                         Icon(Icons.Default.MoreVert, contentDescription = "More", tint = Color.White)
@@ -71,7 +66,6 @@ fun VideoCard(
                         onDismissRequest = { isMenuExpanded = false },
                         containerColor = MaterialTheme.colorScheme.surface
                     ) {
-                        // 👇 اگر اپنی ویڈیو ہے تو Edit اور Delete دکھائیں
                         if (isOwner) {
                             DropdownMenuItem(
                                 text = { Text("Edit") },
@@ -84,29 +78,26 @@ fun VideoCard(
                                 leadingIcon = { Icon(Icons.Default.Delete, contentDescription = null) },
                                 colors = MenuItemDefaults.colors(textColor = MaterialTheme.colorScheme.error)
                             )
-                       } 
-                        // 👇 اگر دوسرے کی ویڈیو ہے تو Report دکھائیں
-                        else {
+                        } else {
                             DropdownMenuItem(
                                 text = { Text("Report") },
                                 onClick = { isMenuExpanded = false },
                                 leadingIcon = { Icon(Icons.Default.Flag, contentDescription = null) }
                             )
                         }
-
-                        // 👇 یہ دونوں (Share, Download) ہر جگہ مشترک ہیں
-                            DropdownMenuItem(
-                                text = { Text("Share") },
-                                onClick = { isMenuExpanded = false },
-                                leadingIcon = { Icon(Icons.Default.Share, contentDescription = null) }
-                            )
-                            DropdownMenuItem(
-                                text = { Text("Download") },
-                                onClick = { isMenuExpanded = false },
-                                leadingIcon = { Icon(Icons.Default.Download, contentDescription = null) }
-                            )
-                      }
-               }
+                        DropdownMenuItem(
+                            text = { Text("Share") },
+                            onClick = { isMenuExpanded = false },
+                            leadingIcon = { Icon(Icons.Default.Share, contentDescription = null) }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Download") },
+                            onClick = { isMenuExpanded = false },
+                            leadingIcon = { Icon(Icons.Default.Download, contentDescription = null) }
+                        )
+                    }
+                }
+            }
             
             Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.Top) {
                 AsyncImage(
@@ -121,26 +112,18 @@ fun VideoCard(
                         video.title,
                         style = MaterialTheme.typography.titleMedium,
                         maxLines = 2,
-                        color = MaterialTheme.colorScheme.onSurface, // ✅ تھیم ٹیکسٹ رنگ
+                        color = MaterialTheme.colorScheme.onSurface,
                         fontWeight = FontWeight.Medium
                     )
                     Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        video.channel, 
-                        style = MaterialTheme.typography.bodyMedium, 
-                        color = MaterialTheme.colorScheme.onSurfaceVariant // ✅ ثانوی ٹیکسٹ رنگ
-                    )
+                    Text(video.channel, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     val meta = listOfNotNull(
                         video.views.takeIf { it.isNotEmpty() },
                         video.publishDate.takeIf { it.isNotEmpty() }
                     ).joinToString(" • ")
                     if (meta.isNotEmpty()) {
                         Spacer(modifier = Modifier.height(2.dp))
-                        Text(
-                            meta, 
-                            style = MaterialTheme.typography.bodySmall, 
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                        Text(meta, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
             }
