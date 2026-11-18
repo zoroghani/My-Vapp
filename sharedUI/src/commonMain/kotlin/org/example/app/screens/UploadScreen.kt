@@ -215,47 +215,44 @@ class UploadScreen : Screen {
 
                 // 4️⃣ Category ڈراپ ڈاؤن
                 Box {
-                    OutlinedTextField(
-                        value = category ?: "",
-                        onValueChange = { },
-                        label = { Text("Category") },
-                        placeholder = { Text("Select category") },
-                        readOnly = true,
-                        trailingIcon = {
-                            Icon(Icons.Default.ExpandMore, contentDescription = null)
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { categoryExpanded = true },
-                        shape = RoundedCornerShape(12.dp)
-                    )
-                    DropdownMenu(
-                        expanded = categoryExpanded,
-                        onDismissRequest = { categoryExpanded = false },
-                        modifier = Modifier.heightIn(max = 320.dp),
-                        containerColor = MaterialTheme.colorScheme.surface
-                    ) {
-                        videoCategories.forEach { cat ->
-                            DropdownMenuItem(
-                                text = {
-                                    Text(
-                                        cat,
-                                        fontWeight = if (cat == category) FontWeight.Bold else FontWeight.Normal
-                                    )
-                                },
-                                onClick = {
-                                    category = cat
-                                    categoryExpanded = false
-                                },
-                                leadingIcon = {
-                                    if (cat == category) {
-                                        Icon(Icons.Default.Check, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-                                    }
-                                }
-                            )
-                        }
+    OutlinedTextField(
+        value = category ?: "",
+        onValueChange = { },
+        label = { Text("Category") },
+        placeholder = { Text("Select category") },
+        readOnly = true,
+        trailingIcon = { Icon(Icons.Default.ExpandMore, contentDescription = null) },
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp)
+    )
+    // 👇 شفاف پرت: کلکس یہ پکڑے گی، TextField نہیں
+    Box(
+        modifier = Modifier
+            .matchParentSize()
+            .clickable { categoryExpanded = true }
+    )
+    DropdownMenu(
+        expanded = categoryExpanded,
+        onDismissRequest = { categoryExpanded = false },
+        modifier = Modifier.heightIn(max = 320.dp),
+        containerColor = MaterialTheme.colorScheme.surface
+    ) {
+        videoCategories.forEach { cat ->
+            DropdownMenuItem(
+                text = { Text(cat, fontWeight = if (cat == category) FontWeight.Bold else FontWeight.Normal) },
+                onClick = {
+                    category = cat
+                    categoryExpanded = false
+                },
+                leadingIcon = {
+                    if (cat == category) {
+                        Icon(Icons.Default.Check, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                     }
                 }
+            )
+        }
+    }
+}
 
                 Spacer(modifier = Modifier.height(24.dp))
 
