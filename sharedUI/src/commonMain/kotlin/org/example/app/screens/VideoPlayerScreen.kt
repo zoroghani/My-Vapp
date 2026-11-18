@@ -35,6 +35,7 @@ import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import org.example.app.core.platform.NativeVideoPlayer
 import org.example.app.dummyVideos
+import org.example.app.core.platform.KeepScreenOn
 
 private val AccentColor = Color(0xFFFF4757)
 
@@ -47,7 +48,7 @@ class VideoPlayerScreen(
 ) : Screen {
 
     @Composable
-    override fun Content() {
+    override fun Content() KeepScreenOn(true) {
         val navigator = LocalNavigator.currentOrThrow
         var isLiked by remember { mutableStateOf(false) }
         var isFollowed by remember { mutableStateOf(false) }
