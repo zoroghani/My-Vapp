@@ -15,7 +15,7 @@ actual fun rememberVideoPicker(onVideoPicked: (String) -> Unit): () -> Unit {
         if (uri != null) {
             // فائل کا سائز چیک کر کے path بھیجیں
             val size = context.contentResolver.openFileDescriptor(uri, "r")?.use { it.statSize } ?: 0
-            onVideoPicked("${uri.path}|$size")
+            onVideoPicked("$uri|$size")
         }
     }
     return remember { { launcher.launch("video/*") } }
