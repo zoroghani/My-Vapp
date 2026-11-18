@@ -116,7 +116,12 @@ class VideoPlayerScreen(
                 .verticalScroll(rememberScrollState())
         ) {
             // 1️⃣ ویڈیو پلئر (نارمل سائز + فل سکرین بٹن)
-            Box(modifier = Modifier.fillMaxWidth().height(240.dp).background(Color.Black)) {
+            Box(
+    modifier = Modifier
+        .fillMaxWidth()
+        .height(if (isLandscape) screenHeightDp else 240.dp)
+        .background(Color.Black)
+) {
                 NativeVideoPlayer(
                     videoUrl = videoUrl,
                     modifier = Modifier.fillMaxSize()
