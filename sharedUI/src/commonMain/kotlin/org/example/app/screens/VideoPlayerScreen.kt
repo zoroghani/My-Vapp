@@ -4,6 +4,8 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.ui.platform.LocalWindowInfo
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.material.icons.filled.Fullscreen
 import androidx.compose.material.icons.filled.FullscreenExit
 import androidx.compose.foundation.lazy.LazyColumn
@@ -49,6 +51,9 @@ class VideoPlayerScreen(
 
     @Composable
     override fun Content() KeepScreenOn(true) {
+        val windowSize = LocalWindowInfo.current.containerSize
+        val isLandscape = windowSize.width > windowSize.height
+        val screenHeightDp = with(LocalDensity.current) { windowSize.height.toDp() }
         val navigator = LocalNavigator.currentOrThrow
         var isLiked by remember { mutableStateOf(false) }
         var isFollowed by remember { mutableStateOf(false) }
