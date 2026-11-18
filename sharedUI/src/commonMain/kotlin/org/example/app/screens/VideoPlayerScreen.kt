@@ -363,6 +363,70 @@ if (isCommentsExpanded) {
                                     tint = MaterialTheme.colorScheme.onSurfaceVariant)
                                 Icon(Icons.Default.ThumbDown, contentDescription = "Dislike",
                                     modifier = Modifier.size(18.dp),
+if (isCommentsExpanded) {
+    ModalBottomSheet(
+        onDismissRequest = { isCommentsExpanded = false },
+        containerColor = MaterialTheme.colorScheme.background,
+        contentColor = MaterialTheme.colorScheme.onSurface
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .fillMaxHeight(0.78f)
+        ) {
+            // ہیڈر
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text("Comments", fontSize = 20.sp, fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.weight(1f))
+                Text("${comments.size}", fontSize = 14.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Spacer(Modifier.width(16.dp))
+                IconButton(onClick = { isCommentsExpanded = false }) {
+                    Icon(Icons.Default.Close, contentDescription = "Close")
+                }
+            }
+            Spacer(Modifier.height(8.dp))
+
+            // کمنٹس کی لسٹ
+            LazyColumn(
+                modifier = Modifier.weight(1f).fillMaxWidth(),
+                contentPadding = PaddingValues(16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                items(comments) { comment ->
+                    Row(verticalAlignment = Alignment.Top) {
+                        Box(
+                            Modifier.size(36.dp).clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.primary),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(comment.author.take(1), color = Color.White,
+                                fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                        }
+                        Spacer(Modifier.width(12.dp))
+                        Column(Modifier.weight(1f)) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text("@${comment.author.lowercase().replace(" ", "")}",
+                                    fontSize = 13.sp, fontWeight = FontWeight.Medium,
+                                    color = MaterialTheme.colorScheme.onSurface)
+                                Spacer(Modifier.width(6.dp))
+                                Text("• just now", fontSize = 12.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
+                            Spacer(Modifier.height(4.dp))
+                            Text(comment.text, fontSize = 14.sp,
+                                color = MaterialTheme.colorScheme.onSurface)
+                            Row(
+                                Modifier.padding(top = 6.dp),
+                                horizontalArrangement = Arrangement.spacedBy(16.dp)
+                            ) {
+                                Icon(Icons.Default.ThumbUp, null, Modifier.size(18.dp),
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Icon(Icons.Default.ThumbDown, null, Modifier.size(18.dp),
                                     tint = MaterialTheme.colorScheme.onSurfaceVariant)
                                 Text("Reply", fontSize = 12.sp, fontWeight = FontWeight.Medium,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -374,21 +438,19 @@ if (isCommentsExpanded) {
 
             HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f))
 
-            // نیچے input field
+            // نیچے پکا ہوا input
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(12.dp),
+                Modifier.fillMaxWidth().padding(12.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Box(
-                    modifier = Modifier.size(36.dp).clip(CircleShape)
+                    Modifier.size(36.dp).clip(CircleShape)
                         .background(MaterialTheme.colorScheme.primary),
                     contentAlignment = Alignment.Center
                 ) {
                     Text("Z", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
                 }
-                Spacer(modifier = Modifier.width(12.dp))
+                Spacer(Modifier.width(12.dp))
                 OutlinedTextField(
                     value = newComment,
                     onValueChange = { newComment = it },
@@ -398,7 +460,7 @@ if (isCommentsExpanded) {
                     shape = RoundedCornerShape(20.dp),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = MaterialTheme.colorScheme.primary,
-                        unfocusedBorderColor = MaterialTheme.colorScheme.outline
+                        unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
                     )
                 )
                 if (newComment.isNotBlank()) {
