@@ -202,7 +202,7 @@ class VideoPlayerScreen(
                             )
                         }
                         IconButton(onClick = { snackbarMessage = "Link copied" }, modifier = Modifier.size(40.dp).clip(CircleShape).background(iconBg)) {
-                            Icon(Icons.Share, contentDescription = "Share", tint = iconColor, modifier = Modifier.size(20.dp))
+                            Icon(Icons.Default.Reply, contentDescription = "Share", tint = iconColor, modifier = Modifier.size(20.dp))
                         }
                         IconButton(onClick = { snackbarMessage = "Download started..." }, modifier = Modifier.size(40.dp).clip(CircleShape).background(iconBg)) {
                             Icon(Icons.Default.Download, contentDescription = "Download", tint = iconColor, modifier = Modifier.size(20.dp))
