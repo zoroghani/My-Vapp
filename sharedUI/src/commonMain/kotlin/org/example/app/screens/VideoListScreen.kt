@@ -88,7 +88,7 @@ private fun MobileLayout(
                     navigator.push(InboxScreen())
                 }
                 // ✅ یہاں Profile Tab کی Login/Signup منطق موجود ہے
-                NavItem(Icons.AccountCircle, "Profile", selectedTab == 4) {
+                NavItem(Icons.Default.Person, "Profile", selectedTab == 4) {
                     onTabChange(4)
                     if (AuthState.isLoggedIn) {
                         navigator.push(ProfileScreen())
