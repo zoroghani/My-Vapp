@@ -52,7 +52,8 @@ class VideoPlayerScreen(
         var isDescriptionExpanded by remember { mutableStateOf(false) }
         var commentText by remember { mutableStateOf("") }
         var isCommentsExpanded by remember { mutableStateOf(false) }
-var newComment by remember { mutableStateOf("") }
+        var newComment by remember { mutableStateOf("") }
+        var isFullScreen by remember { mutableStateOf(false) }
         
         val comments = remember { mutableStateListOf(Comment("Tech Fan", "Great video! 🙌")) }
         val snackbarHostState = remember { SnackbarHostState() }
@@ -66,17 +67,68 @@ var newComment by remember { mutableStateOf("") }
         }
 
         Scaffold(
-            // ✅ تھیم کے مطابق پس منظر
-            containerColor = MaterialTheme.colorScheme.background,
-            snackbarHost = { SnackbarHost(snackbarHostState) }
-        ) { padding ->
-            Column(
-                modifier = Modifier.fillMaxSize().padding(padding).verticalScroll(rememberScrollState())
+    containerColor = MaterialTheme.colorScheme.background,
+    snackbarHost = { SnackbarHost(snackbarHostState) }
+) { padding ->
+
+    // 👇 اگر فل سکرین موڈ آن ہے
+    if (isFullScreen) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black)
+        ) {
+            NativeVideoPlayer(
+                videoUrl = videoUrl,
+                modifier = Modifier.fillMaxSize()
+            )
+            
+            // فل سکرین سے باہر آنے کا بٹن
+            IconButton(
+                onClick = { isFullScreen = false },
+                modifier = Modifier
+                    .align(Alignment.TopStart)
+                    .padding(16.dp)
+                    .background(Color.Black.copy(alpha = 0.5f), CircleShape)
             ) {
+                Icon(
+                    Icons.Default.FullscreenExit, 
+                    contentDescription = "Exit Fullscreen", 
+                    tint = Color.White
+                )
+            }
+        }
+    } 
+    // 👇 نارمل موڈ (پرانے اسکرول والے لے آؤٹ کے ساتھ)
+    else {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .verticalScroll(rememberScrollState())
+        ) {
+            // 1️⃣ ویڈیو پلئر (نارمل سائز + فل سکرین بٹن)
+            Box(modifier = Modifier.fillMaxWidth().height(240.dp).background(Color.Black)) {
                 NativeVideoPlayer(
                     videoUrl = videoUrl,
-                    modifier = Modifier.fillMaxWidth().height(240.dp).background(Color.Black)
+                    modifier = Modifier.fillMaxSize()
                 )
+                
+                // فل سکرین جانے کا بٹن
+                IconButton(
+                    onClick = { isFullScreen = true },
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .padding(8.dp)
+                        .background(Color.Black.copy(alpha = 0.5f), CircleShape)
+                ) {
+                    Icon(
+                        Icons.Default.Fullscreen, 
+                        contentDescription = "Full Screen", 
+                        tint = Color.White
+                    )
+                }
+            }
 
                 Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp)) {
                     Text(
