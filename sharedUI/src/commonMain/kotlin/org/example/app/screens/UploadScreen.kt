@@ -261,23 +261,22 @@ class UploadScreen : Screen {
 
                 // 5️⃣ Upload بٹن
                 Button(
-                       onClick = {
-                           scope.launch {
-                             snackbarHostState.showSnackbar("Video uploaded successfully! 🎉")
-                         }
-                         navigator.pop()
-                       }
-                    enabled = canUpload,
-                    modifier = Modifier.fillMaxWidth().height(52.dp),
-                    shape = RoundedCornerShape(26.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF3066E8),
-                        contentColor = Color.White
-                    )
-                ) {
-                    Text("Upload", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                    onClick = {
+                        scope.launch {
+                            snackbarHostState.showSnackbar("Video uploaded successfully! 🎉")
+                        }
+                        navigator.pop()
+                },
+                enabled = canUpload,
+                modifier = Modifier.fillMaxWidth().height(52.dp),
+                shape = RoundedCornerShape(26.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF3066E8),
+                    contentColor = Color.White
+                )
+           ) {
+                Text("Upload", fontSize = 16.sp, fontWeight = FontWeight.Bold)
                 }
-
                 Spacer(modifier = Modifier.height(24.dp))
             }
         }
