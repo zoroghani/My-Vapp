@@ -254,3 +254,126 @@ class HelpPage : Screen {
         }
     }
 }
+
+@Composable
+fun DownloadedVideoRow(video: DummyVideo, onPlay: () -> Unit, onDelete: () -> Unit) {
+    var menuExpanded by remember { mutableStateOf(false) }
+    Card(
+        onClick = onPlay,
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            AsyncImage(
+                model = video.thumbnailUrl,
+                contentDescription = video.title,
+                modifier = Modifier.size(width = 96.dp, height = 64.dp).clip(RoundedCornerShape(10.dp)),
+                contentScale = ContentScale.Crop
+            )
+            Spacer(modifier = Modifier.width(12.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    video.title,
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Spacer(modifier = Modifier.height(2.dp))
+                Text(video.channel, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Spacer(modifier = Modifier.height(4.dp))
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Default.CheckCircle, contentDescription = null, modifier = Modifier.size(14.dp), tint = Color(0xFF43A047))
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text("Downloaded • ${video.duration}", fontSize = 12.sp, color = Color(0xFF43A047))
+                }
+            }
+            IconButton(onClick = onPlay, modifier = Modifier.size(44.dp)) {
+                Box(
+                    modifier = Modifier.size(40.dp).clip(CircleShape).background(MaterialTheme.colorScheme.primary),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(Icons.Default.PlayArrow, contentDescription = "Play", tint = MaterialTheme.colorScheme.onPrimary, modifier = Modifier.size(24.dp))
+                }
+            }
+            Box {
+                IconButton(onClick = { menuExpanded = true }, modifier = Modifier.size(40.dp)) {
+                    Icon(Icons.Default.MoreVert, contentDescription = "More", tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+                DropdownMenu(
+                    expanded = menuExpanded,
+                    onDismissRequest = { menuExpanded = false },
+                    containerColor = MaterialTheme.colorScheme.surface
+                ) {
+                    DropdownMenuItem(
+                        text = { Text("Delete", color = MaterialTheme.colorScheme.error) },
+                        onClick = {
+                            menuExpanded = false
+                            onDelete()
+                        },
+                        leadingIcon = { Icon(Icons.Default.Delete, contentDescription = null, tint = MaterialTheme.colorScheme.error) }
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun DownloadsManager(modifier: Modifier = Modifier) {
+    val navigator = LocalNavigator.currentOrThrow
+    val downloaded = remember { mutableStateListOf<DummyVideo>().apply { addAll(dummyVideos.take(2)) } }
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+
+    Column(modifier = modifier) {
+        if (downloaded.isEmpty()) {
+            Box(modifier = Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Icon(Icons.Default.Download, contentDescription = null, modifier = Modifier.size(64.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f))
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Text("No downloads yet", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        "Videos you download will appear here for offline playback.",
+                        fontSize = 13.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(horizontal = 32.dp)
+                    )
+                }
+            }
+        } else {
+            LazyColumn(
+                modifier = Modifier.weight(1f).fillMaxWidth(),
+                contentPadding = PaddingValues(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                items(downloaded, key = { it.videoUrl }) { video ->
+                    DownloadedVideoRow(
+                        video = video,
+                        onPlay = { navigator.push(VideoPlayerScreen(video.videoUrl, video.title)) },
+                        onDelete = {
+                            val idx = downloaded.indexOf(video)
+                            if (idx >= 0) {
+                                downloaded.removeAt(idx)
+                                scope.launch {
+                                    val result = snackbarHostState.showSnackbar(message = "Removed from downloads", actionLabel = "Undo")
+                                    if (result == SnackbarResult.ActionPerformed) {
+                                        downloaded.add(idx.coerceAtMost(downloaded.size), video)
+                                    }
+                                }
+                            }
+                        }
+                    )
+                }
+            }
+        }
+        SnackbarHost(snackbarHostState)
+    }
+}
