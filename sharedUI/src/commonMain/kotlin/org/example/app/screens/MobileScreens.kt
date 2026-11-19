@@ -3,6 +3,8 @@ package org.example.app.screens
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import kotlinx.coroutines.launch
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.runtime.mutableStateListOf
@@ -58,14 +60,28 @@ class DownloadsPage : Screen {
         val downloaded = remember {
             mutableStateListOf(*dummyVideos.take(2).toTypedArray())
         }
+        val snackbarHostState = remember { SnackbarHostState() }
+        val scope = rememberCoroutineScope()
 
         Scaffold(
             topBar = { PageTopBar("Downloads") { navigator.pop() } },
+            snackbarHost = { SnackbarHost(snackbarHostState) },
             containerColor = MaterialTheme.colorScheme.background
         ) { padding ->
             if (downloaded.isEmpty()) {
                 Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
-                    Text("No downloads yet", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Icon(
+                            Icons.Default.Download,
+                            contentDescription = null,
+                            modifier = Modifier.size(56.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Text("No downloads yet", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text("Videos you download will appear here.", fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
                 }
             } else {
                 Column(
@@ -73,9 +89,10 @@ class DownloadsPage : Screen {
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     downloaded.forEach { video ->
-                        var isMenuExpanded by remember { mutableStateOf(false) }
+                        var isMenuExpanded by remember(video.videoUrl) { mutableStateOf(false) }
 
                         Card(
+                            onClick = { navigator.push(VideoPlayerScreen(video.videoUrl, video.title)) },
                             shape = RoundedCornerShape(14.dp),
                             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
                         ) {
@@ -88,7 +105,14 @@ class DownloadsPage : Screen {
                                 )
                                 Spacer(modifier = Modifier.width(12.dp))
                                 Column(modifier = Modifier.weight(1f)) {
-                                    Text(video.title, fontWeight = FontWeight.Bold, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurface)
+                                    Text(
+                                        video.title,
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 14.sp,
+                                        color = MaterialTheme.colorScheme.onSurface,
+                                        maxLines = 2,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
                                     Text(video.channel, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                     Spacer(modifier = Modifier.height(4.dp))
                                     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -98,9 +122,30 @@ class DownloadsPage : Screen {
                                     }
                                 }
 
-                                // 👇 play بٹن ہٹا کر 3 ڈاٹ مینیو
+                                // ▶ پلے بٹن (بحال)
+                                IconButton(
+                                    onClick = { navigator.push(VideoPlayerScreen(video.videoUrl, video.title)) },
+                                    modifier = Modifier.size(44.dp)
+                                ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(40.dp)
+                                            .clip(RoundedCornerShape(20.dp))
+                                            .background(MaterialTheme.colorScheme.primary),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Icon(
+                                            Icons.Default.PlayArrow,
+                                            contentDescription = "Play",
+                                            tint = MaterialTheme.colorScheme.onPrimary,
+                                            modifier = Modifier.size(24.dp)
+                                        )
+                                    }
+                                }
+
+                                // ⋮ 3 ڈاٹ مینیو (Delete + Undo)
                                 Box {
-                                    IconButton(onClick = { isMenuExpanded = true }) {
+                                    IconButton(onClick = { isMenuExpanded = true }, modifier = Modifier.size(40.dp)) {
                                         Icon(Icons.Default.MoreVert, contentDescription = "More", tint = MaterialTheme.colorScheme.onSurface)
                                     }
                                     DropdownMenu(
@@ -111,8 +156,20 @@ class DownloadsPage : Screen {
                                         DropdownMenuItem(
                                             text = { Text("Delete", color = MaterialTheme.colorScheme.error) },
                                             onClick = {
-                                                downloaded.remove(video)
                                                 isMenuExpanded = false
+                                                val idx = downloaded.indexOf(video)
+                                                if (idx >= 0) {
+                                                    downloaded.removeAt(idx)
+                                                    scope.launch {
+                                                        val result = snackbarHostState.showSnackbar(
+                                                            message = "Removed from downloads",
+                                                            actionLabel = "Undo"
+                                                        )
+                                                        if (result == SnackbarResult.ActionPerformed) {
+                                                            downloaded.add(idx.coerceAtMost(downloaded.size), video)
+                                                        }
+                                                    }
+                                                }
                                             },
                                             leadingIcon = { Icon(Icons.Default.Delete, contentDescription = null, tint = MaterialTheme.colorScheme.error) }
                                         )
