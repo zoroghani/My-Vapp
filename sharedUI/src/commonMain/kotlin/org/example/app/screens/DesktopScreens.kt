@@ -18,13 +18,15 @@ import androidx.compose.ui.unit.sp
 
 @Composable
 fun DownloadsScreen() {
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Icon(Icons.Default.Download, contentDescription = null, modifier = Modifier.size(64.dp), tint = Color(0xFF6200EE))
-            Spacer(modifier = Modifier.height(16.dp))
-            Text("Downloads", fontSize = 20.sp, fontWeight = FontWeight.Bold)
-            Text("Your offline videos will be saved here.", color = Color.Gray)
-        }
+    Column(modifier = Modifier.fillMaxSize()) {
+        Text(
+            "Downloads",
+            fontSize = 22.sp,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier.padding(start = 4.dp, bottom = 12.dp)
+        )
+        DownloadsManager(modifier = Modifier.weight(1f).fillMaxWidth())
     }
 }
 
