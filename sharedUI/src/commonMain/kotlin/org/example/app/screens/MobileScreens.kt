@@ -28,7 +28,7 @@ import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import coil3.compose.AsyncImage
-import org.example.app.dummyVideo
+import org.example.app.DummyVideo
 import org.example.app.dummyVideos
 import androidx.compose.ui.graphics.Color
 import androidx.compose.material3.Button
