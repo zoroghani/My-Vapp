@@ -7,7 +7,7 @@ import java.awt.Frame
 import java.io.File
 
 @Composable
-actual fun rememberVideoPicker(onVideoPicked: (String) -> Unit): () -> Unit {
+actual fun rememberVideoPicker(onVideoPicked: (ByteArray, String) -> Unit): () -> Unit {
     return remember {
         {
             val dialog = FileDialog(null as Frame?, "Select Video", FileDialog.LOAD)
@@ -22,7 +22,7 @@ actual fun rememberVideoPicker(onVideoPicked: (String) -> Unit): () -> Unit {
             val directory = dialog.directory
             if (fileName != null && directory != null) {
                 val f = File(directory, fileName)
-                onVideoPicked("${f.absolutePath}|${f.length()}")
+                onVideoPicked(f.readBytes(), f.name)
             }
         }
     }
