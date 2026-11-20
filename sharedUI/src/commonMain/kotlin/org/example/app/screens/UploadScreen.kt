@@ -43,7 +43,8 @@ class UploadScreen : Screen {
     override fun Content() {
         val navigator = LocalNavigator.currentOrThrow
 
-        var videoPath by remember { mutableStateOf<String?>(null) }
+        var videoBytes by remember { mutableStateOf<ByteArray?>(null) }
+        var videoFileName by remember { mutableStateOf<String?>(null) }
         var isUploading by remember { mutableStateOf(false) }
         var progress by remember { mutableStateOf(0f) }
         var isUploaded by remember { mutableStateOf(false) }
@@ -57,8 +58,9 @@ class UploadScreen : Screen {
         val scope = rememberCoroutineScope()
 
         // 🎬 ویڈیو پکر — فائل منتخب ہوتے ہی اپلوڈنگ شروع
-        val pickVideo = rememberVideoPicker { path ->
-            videoPath = path
+        val pickVideo = rememberVideoPicker { bytes, name ->
+            videoBytes = bytes
+            videoFileName = name
             isUploading = true
             progress = 0f
             isUploaded = false
