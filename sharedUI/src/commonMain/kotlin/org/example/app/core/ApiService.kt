@@ -63,7 +63,7 @@ data class UploadError(
 object ApiService {
     
     // 👇 یہاں اپنا PHP API کا URL لکھیں
-    private const val BASE_URL = "http://192.168.1.10/your_project/api/" 
+    private const val BASE_URL = "http://testooo.cu.ma/php-admin-panel-master/source-code/admin/api/" 
 
     val client = HttpClient {
         install(ContentNegotiation) {
@@ -99,7 +99,7 @@ object ApiService {
      * 1. ویڈیو کو تھرڈ پارٹی API پر اپلوڈ کرتا ہے
      */
     suspend fun uploadVideoToExternalApi(fileBytes: ByteArray, fileName: String): VideoUploadResponse {
-        val response = client.post("https://videostreamingapi.com/upload") {
+        val response = client.post("https://anonmp4api.xyz/upload") {
             setBody(MultiPartFormDataContent(formData {
                 append("file", fileBytes, Headers.build {
                     append(HttpHeaders.ContentType, "video/mp4")
