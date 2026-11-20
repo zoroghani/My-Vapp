@@ -23,13 +23,9 @@ import androidx.compose.ui.unit.sp
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
-import kotlinx.coroutines.delay
 import org.example.app.core.platform.rememberVideoPicker
-import org.example.app.core.platform.VideoThumbnail
 import org.example.app.core.ApiService
-import org.example.app.core.platform.readFileAsBytes
 
-// 📋 تمام کیٹیگریز (تصویر 2 کے مطابق)
 private val videoCategories = listOf(
     "None", "Autos & Vehicles", "Comedy", "Education", "Entertainment",
     "Film & Animation", "Fashion & Beauty", "Gaming", "Music",
@@ -43,6 +39,7 @@ class UploadScreen : Screen {
     override fun Content() {
         val navigator = LocalNavigator.currentOrThrow
 
+        var videoPath by remember { mutableStateOf<String?>(null) }
         var videoBytes by remember { mutableStateOf<ByteArray?>(null) }
         var videoFileName by remember { mutableStateOf<String?>(null) }
         var isUploading by remember { mutableStateOf(false) }
@@ -57,28 +54,14 @@ class UploadScreen : Screen {
         val snackbarHostState = remember { SnackbarHostState() }
         val scope = rememberCoroutineScope()
 
-        // 🎬 ویڈیو پکر — فائل منتخب ہوتے ہی اپلوڈنگ شروع
-        val pickVideo = rememberVideoPicker { bytes, name ->
+        // 🎬 ویڈیو پکر — فائل منتخب ہوتے ہی صرف اسٹیٹ اپ ڈیٹ ہوگی
+        val pickVideo = rememberVideoPicker { uri, bytes, name ->
+            videoPath = uri
             videoBytes = bytes
             videoFileName = name
-            isUploading = true
-            progress = 0f
-            isUploaded = false
         }
 
-        // 📊 simulated اپلوڈنگ پروگریس (0 → 100)
-        LaunchedEffect(isUploading) {
-            if (isUploading) {
-                while (progress < 1f) {
-                    delay(40)
-                    progress = (progress + 0.012f).coerceAtMost(1f)
-                }
-                isUploading = false
-                isUploaded = true
-            }
-        }
-
-        val canUpload = title.isNotBlank() && category != null && !isUploading
+        val canUpload = title.isNotBlank() && category != null && !isUploading && videoBytes != null
 
         Scaffold(
             topBar = {
@@ -119,71 +102,50 @@ class UploadScreen : Screen {
                         )
                 ) {
                     if (videoPath == null) {
-                        // 🔹 ابتدائی حالت: پلی آئیکن + Select file
                         Column(
                             modifier = Modifier.fillMaxSize(),
                             horizontalAlignment = Alignment.CenterHorizontally,
                             verticalArrangement = Arrangement.Center
                         ) {
-                            Icon(
-                                Icons.Default.PlayCircle,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.size(56.dp)
-                            )
+                            Icon(Icons.Default.PlayCircle, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(56.dp))
                             Spacer(modifier = Modifier.height(12.dp))
                             Button(
                                 onClick = { pickVideo() },
                                 shape = RoundedCornerShape(20.dp),
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = MaterialTheme.colorScheme.onSurface,
-                                    contentColor = MaterialTheme.colorScheme.surface
-                                )
+                                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.onSurface, contentColor = MaterialTheme.colorScheme.surface)
                             ) {
                                 Text("Select file", fontWeight = FontWeight.Bold)
                             }
                         }
                     } else {
-                        // 🔹 اپلوڈنگ / مکمل حالت: "Uploading... X%" + بار
                         Column(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .padding(20.dp),
-                            verticalArrangement = Arrangement.Bottom
+                            modifier = Modifier.fillMaxSize().padding(20.dp),
+                            verticalArrangement = Arrangement.Center,
+                            horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text(
-                                    text = if (isUploaded) "Uploaded!" else "Uploading...",
-                                    color = Color.White,
-                                    fontSize = 18.sp,
-                                    fontWeight = FontWeight.Bold
-                                )
-                                Spacer(modifier = Modifier.width(12.dp))
+                            if (isUploading || isUploaded) {
+                                Text(text = if (isUploaded) "Uploaded!" else "Uploading...", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                                Spacer(modifier = Modifier.height(12.dp))
                                 LinearProgressIndicator(
                                     progress = { progress },
-                                    modifier = Modifier
-                                        .weight(1f)
-                                        .height(8.dp)
-                                        .clip(RoundedCornerShape(4.dp)),
+                                    modifier = Modifier.weight(1f).height(8.dp).clip(RoundedCornerShape(4.dp)),
                                     color = Color(0xFF3066E8),
                                     trackColor = Color.White.copy(alpha = 0.4f)
                                 )
+                                Spacer(modifier = Modifier.height(6.dp))
+                                Text(text = "${(progress * 100).toInt()}%", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Medium)
+                            } else {
+                                Text(text = videoFileName ?: "Video Selected", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Text(text = "Ready to upload", color = Color.White.copy(alpha = 0.8f), fontSize = 14.sp)
                             }
-                            Spacer(modifier = Modifier.height(6.dp))
-                            Text(
-                                text = "${(progress * 100).toInt()}%",
-                                color = Color.White,
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight.Medium,
-                                modifier = Modifier.align(Alignment.CenterHorizontally)
-                            )
                         }
                     }
                 }
 
                 Spacer(modifier = Modifier.height(20.dp))
 
-                // 2️⃣ Title فیلڈ + 0/100 کاؤنٹر
+                // 2️⃣ Title فیلڈ
                 Text("Title", fontSize = 13.sp, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Spacer(modifier = Modifier.height(6.dp))
                 OutlinedTextField(
@@ -194,15 +156,7 @@ class UploadScreen : Screen {
                     singleLine = true,
                     shape = RoundedCornerShape(12.dp)
                 )
-                Text(
-                    text = "${title.length}/100",
-                    fontSize = 12.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 4.dp),
-                    textAlign = androidx.compose.ui.text.style.TextAlign.End
-                )
+                Text(text = "${title.length}/100", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.fillMaxWidth().padding(top = 4.dp), textAlign = androidx.compose.ui.text.style.TextAlign.End)
 
                 Spacer(modifier = Modifier.height(12.dp))
 
@@ -220,114 +174,99 @@ class UploadScreen : Screen {
 
                 // 4️⃣ Category ڈراپ ڈاؤن
                 Box {
-    OutlinedTextField(
-        value = category ?: "",
-        onValueChange = { },
-        label = { Text("Category") },
-        placeholder = { Text("Select category") },
-        readOnly = true,
-        trailingIcon = { Icon(Icons.Default.ExpandMore, contentDescription = null) },
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp)
-    )
-    // 👇 شفاف پرت: کلکس یہ پکڑے گی، TextField نہیں
-    Box(
-        modifier = Modifier
-            .matchParentSize()
-            .clickable { categoryExpanded = true }
-    )
-    DropdownMenu(
-        expanded = categoryExpanded,
-        onDismissRequest = { categoryExpanded = false },
-        modifier = Modifier.heightIn(max = 320.dp),
-        containerColor = MaterialTheme.colorScheme.surface
-    ) {
-        videoCategories.forEach { cat ->
-            DropdownMenuItem(
-                text = { Text(cat, fontWeight = if (cat == category) FontWeight.Bold else FontWeight.Normal) },
-                onClick = {
-                    category = cat
-                    categoryExpanded = false
-                },
-                leadingIcon = {
-                    if (cat == category) {
-                        Icon(Icons.Default.Check, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                    OutlinedTextField(
+                        value = category ?: "",
+                        onValueChange = { },
+                        label = { Text("Category") },
+                        placeholder = { Text("Select category") },
+                        readOnly = true,
+                        trailingIcon = { Icon(Icons.Default.ExpandMore, contentDescription = null) },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp)
+                    )
+                    Box(modifier = Modifier.matchParentSize().clickable { categoryExpanded = true })
+                    DropdownMenu(
+                        expanded = categoryExpanded,
+                        onDismissRequest = { categoryExpanded = false },
+                        modifier = Modifier.heightIn(max = 320.dp),
+                        containerColor = MaterialTheme.colorScheme.surface
+                    ) {
+                        videoCategories.forEach { cat ->
+                            DropdownMenuItem(
+                                text = { Text(cat, fontWeight = if (cat == category) FontWeight.Bold else FontWeight.Normal) },
+                                onClick = { category = cat; categoryExpanded = false },
+                                leadingIcon = {
+                                    if (cat == category) Icon(Icons.Default.Check, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                                }
+                            )
+                        }
                     }
                 }
-            )
-        }
-    }
-}
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                // 5️⃣ Upload بٹن
+                // 5️⃣ Upload بٹن (اصل اپلوڈ یہاں ہوگا)
                 Button(
                     onClick = {
-                      scope.launch {
-                       isUploading = true
-            
-                   try {
-                val bytes = videoBytes
-                val name = videoFileName ?: "video.mp4"
+                        scope.launch {
+                            isUploading = true
+                            progress = 0f
+                            try {
+                                val bytes = videoBytes
+                                val name = videoFileName ?: "video.mp4"
 
-                if (bytes == null || bytes.isEmpty()) {
-                    snackbarHostState.showSnackbar("Error: Could not read video file.")
-                    isUploading = false
-                    return@launch
-                }
+                                if (bytes == null || bytes.isEmpty()) {
+                                    snackbarHostState.showSnackbar("Error: Could not read video file.")
+                                    isUploading = false
+                                    return@launch
+                                }
 
-                // 1. تھرڈ پارٹی API پر اپلوڈ کریں
-                val uploadResponse = ApiService.uploadVideoToExternalApi(bytes, name)
+                                // 1. تھرڈ پارٹی API پر اپلوڈ
+                                val uploadResponse = ApiService.uploadVideoToExternalApi(bytes, name)
 
-                if (uploadResponse.success && uploadResponse.watch_url != null) {
-                    // 2. اپنے PHP ڈیٹا بیس میں محفوظ کریں
-                    val saveResponse = ApiService.saveVideoMetadata(
-                        title = title,
-                        description = description,
-                        categoryId = 1, // 👈 بعد میں کیٹیگری کی صحیح ID لگائیں گے
-                        uploaderId = 1, // 👈 بعد میں لاگ ان یوزر کی ID لگائیں گے
-                        videoUrl = uploadResponse.watch_url!!,
-                        thumbnailUrl = uploadResponse.thumbnail ?: "",
-                        duration = "00:00" // 👈 بعد میں اصل دورانیہ نکالیں گے
-                    )
+                                if (uploadResponse.success && uploadResponse.watch_url != null) {
+                                    // 2. اپنے PHP ڈیٹا بیس میں محفوظ کریں
+                                    val saveResponse = ApiService.saveVideoMetadata(
+                                        title = title,
+                                        description = description,
+                                        categoryId = 1, 
+                                        uploaderId = 1, 
+                                        videoUrl = uploadResponse.watch_url!!,
+                                        thumbnailUrl = uploadResponse.thumbnail ?: "",
+                                        duration = "00:00" 
+                                    )
 
-                    if (saveResponse.status == "success") {
-                        snackbarHostState.showSnackbar("Video uploaded and saved successfully! 🎉")
-                        navigator.pop() // کامیابی پر واپس جائیں
-                    } else {
-                        snackbarHostState.showSnackbar("Upload succeeded, but saving to DB failed: ${saveResponse.message}")
+                                    if (saveResponse.status == "success") {
+                                        isUploaded = true
+                                        progress = 1f
+                                        snackbarHostState.showSnackbar("Video uploaded and saved successfully! 🎉")
+                                        navigator.pop() 
+                                    } else {
+                                        snackbarHostState.showSnackbar("Upload succeeded, but saving to DB failed: ${saveResponse.message}")
+                                    }
+                                } else {
+                                    snackbarHostState.showSnackbar("Upload failed: ${uploadResponse.error?.message ?: "Unknown error"}")
+                                }
+
+                            } catch (e: Exception) {
+                                snackbarHostState.showSnackbar("Network Error: ${e.message}")
+                            } finally {
+                                isUploading = false
+                            }
+                        }
+                    },
+                    enabled = canUpload,
+                    modifier = Modifier.fillMaxWidth().height(52.dp),
+                    shape = RoundedCornerShape(26.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF3066E8), contentColor = Color.White)
+                ) {
+                    if (isUploading) {
+                        CircularProgressIndicator(modifier = Modifier.size(24.dp), color = Color.White, strokeWidth = 3.dp)
+                        Spacer(modifier = Modifier.width(8.dp))
                     }
-                } else {
-                    snackbarHostState.showSnackbar("Upload failed: ${uploadResponse.error?.message ?: "Unknown error"}")
+                    Text(if (isUploading) "Uploading..." else "Upload", fontSize = 16.sp, fontWeight = FontWeight.Bold)
                 }
-
-            } catch (e: Exception) {
-                snackbarHostState.showSnackbar("Network Error: ${e.message}")
-            } finally {
-                isUploading = false
-            }
-        }
-    },
-    enabled = canUpload && !isUploading, // اپلوڈنگ کے دوران بٹن ڈس ایبل
-    modifier = Modifier.fillMaxWidth().height(52.dp),
-    shape = RoundedCornerShape(26.dp),
-    colors = ButtonDefaults.buttonColors(
-        containerColor = Color(0xFF3066E8),
-        contentColor = Color.White
-    )
-) {
-    if (isUploading) {
-        CircularProgressIndicator(
-            modifier = Modifier.size(24.dp),
-            color = Color.White,
-            strokeWidth = 3.dp
-        )
-           Spacer(modifier = Modifier.width(8.dp))
-       }
-           Text(if (isUploading) "Uploading..." else "Upload", fontSize = 16.sp, fontWeight = FontWeight.Bold)
-            }
-            Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(24.dp))
             }
         }
     }
