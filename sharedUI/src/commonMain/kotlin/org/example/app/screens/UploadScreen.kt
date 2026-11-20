@@ -259,23 +259,73 @@ class UploadScreen : Screen {
 
                 // 5️⃣ Upload بٹن
                 Button(
-                    onClick = {
-                        scope.launch {
-                            snackbarHostState.showSnackbar("Video uploaded successfully! 🎉")
+                     onClick = {
+                         scope.launch {
+                             isUploading = true
+            
+                             try {
+                                 // 1. فائل کو بائٹس میں پڑھیں
+                                 val fileBytes = readFileAsBytes(videoPath ?: "")
+                
+                                 if (fileBytes.isEmpty()) {
+                                     snackbarHostState.showSnackbar("Error: Could not read video file.")
+                                     isUploading = false
+                                       return@launch
+                                 }
+
+                                  val fileName = videoPath?.substringAfterLast("/") ?: "video.mp4"
+
+                                  // 2. تھرڈ پارٹی API پر اپلوڈ کریں
+                                  val uploadResponse = ApiService.uploadVideoToExternalApi(fileBytes, fileName)
+
+                                  if (uploadResponse.success && uploadResponse.watch_url != null) {
+                                  // 3. اپنے PHP ڈیٹا بیس میں محفوظ کریں
+                                      val saveResponse = ApiService.saveVideoMetadata(
+                                          title = title,
+                                          description = description,
+                                          categoryId = 1, // 👈 بعد میں کیٹیگری کی صحیح ID لگائیں گے
+                                          uploaderId = 1, // 👈 بعد میں لاگ ان یوزر کی ID لگائیں گے
+                                          videoUrl = uploadResponse.watch_url!!,
+                                          thumbnailUrl = uploadResponse.thumbnail ?: "",
+                                          duration = "00:00" // 👈 بعد میں اصل دورانیہ نکالیں گے
+                                      )
+
+                                      if (saveResponse.status == "success") {
+                                          snackbarHostState.showSnackbar("Video uploaded and saved successfully! 🎉")
+                                          navigator.pop() // کامیابی پر واپس جائیں
+                                } else {
+                                    snackbarHostState.showSnackbar("Upload succeeded, but saving to DB failed: ${saveResponse.message}")
+                                }
+                            } else {
+                                snackbarHostState.showSnackbar("Upload failed: ${uploadResponse.error?.message ?: "Unknown error"}")
+                            }
+
+                        } catch (e: Exception) {
+                                       snackbarHostState.showSnackbar("Network Error: ${e.message}")
+                        } finally {
+                            isUploading = false
                         }
-                        navigator.pop()
-                },
-                enabled = canUpload,
-                modifier = Modifier.fillMaxWidth().height(52.dp),
-                shape = RoundedCornerShape(26.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF3066E8),
-                    contentColor = Color.White
-                )
-           ) {
-                Text("Upload", fontSize = 16.sp, fontWeight = FontWeight.Bold)
-                }
-                Spacer(modifier = Modifier.height(24.dp))
+                   }
+              },
+              enabled = canUpload && !isUploading, // اپلوڈنگ کے دوران بٹن ڈس ایبل
+              modifier = Modifier.fillMaxWidth().height(52.dp),
+              shape = RoundedCornerShape(26.dp),
+              colors = ButtonDefaults.buttonColors(
+                  containerColor = Color(0xFF3066E8),
+                  contentColor = Color.White
+              )
+         ) {
+              if (isUploading) {
+                  CircularProgressIndicator(
+                      modifier = Modifier.size(24.dp),
+                      color = Color.White,
+                      strokeWidth = 3.dp
+                  )
+                  Spacer(modifier = Modifier.width(8.dp))
+              }
+              Text(if (isUploading) "Uploading..." else "Upload", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+          }
+              Spacer(modifier = Modifier.height(24.dp))
             }
         }
     }
