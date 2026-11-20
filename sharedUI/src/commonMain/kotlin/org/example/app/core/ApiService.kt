@@ -36,7 +36,7 @@ object ApiService {
     
     // 👇 یہاں اپنا اصل IP ایڈریس یا ڈومین لکھیں (جیسا کہ test_api.html میں تھا)
     // اگر آپ موبائل پر ٹیسٹ کر رہے ہیں تو localhost کی جگہ کمپیوٹر کا IP لکھیں
-    private const val BASE_URL = "http://192.168.1.10/your_project/api/" 
+    private const val BASE_URL = "http://testooo.cu.ma/php-admin-panel-master/source-code/admin/api/" 
 
     val client = HttpClient {
         install(ContentNegotiation) {
