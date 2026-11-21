@@ -35,25 +35,32 @@ data class UserData(
     val profileImage: String? = null
 )
 
-// 👇 تھرڈ پارٹی ویڈیو اپلوڈ کا ریسپانس
+// 👇 Streamtape Upload URL Response
 @Serializable
-data class VideoUploadResponse(
-    val success: Boolean,
-    val video_id: String? = null,
-    val title: String? = null,
-    val thumbnail: String? = null,
-    val watch_url: String? = null,
-    val embed_url: String? = null,
-    val delete_url: String? = null,
-    val upload_date: String? = null,
-    val message: String? = null,
-    val error: UploadError? = null
+data class StreamtapeUploadUrlResponse(
+    val status: Int,
+    val msg: String,
+    val result: StreamtapeUploadResult?
 )
 
 @Serializable
-data class UploadError(
-    val code: String? = null,
-    val message: String? = null
+data class StreamtapeUploadResult(
+    val url: String,
+    val valid_until: String
+)
+
+// 👇 Streamtape Final Upload Response
+@Serializable
+data class StreamtapeFinalResponse(
+    val status: Int,
+    val msg: String,
+    val result: StreamtapeFinalResult?
+)
+
+@Serializable
+data class StreamtapeFinalResult(
+    val url: String,   // مثال: https://streamtape.com/v/xyz123/video.mp4
+    val name: String
 )
 
 // ==========================================
@@ -62,18 +69,27 @@ data class UploadError(
 
 object ApiService {
     
-    // 👇 یہاں اپنا PHP API کا URL لکھیں
-    private const val BASE_URL = "http://testooo.cu.ma/php-admin-panel-master/source-code/admin/api/" 
+    private const val BASE_URL = "http://192.168.1.10/your_project/api/" // 👈 اپنا PHP URL یہاں لکھیں
+    
+    // 👇 اپنی Streamtape کی تفصیلات یہاں login
+    private const val STREAMTAPE_LOGIN = "o9DarRp488uJykb" 
+    private const val STREAMTAPE_KEY = "04d3d9a57b69adbdb681"     
 
-    val client = HttpClient {
-        install(ContentNegotiation) {
-            json(Json {
-                ignoreUnknownKeys = true
-                isLenient = true
-            })
+    val client by lazy {
+        HttpClient {
+            install(ContentNegotiation) {
+                json(Json {
+                    ignoreUnknownKeys = true
+                    isLenient = true
+                })
+            }
+            install(io.ktor.client.plugins.HttpTimeout) {
+                connectTimeoutMillis = 30000
+                requestTimeoutMillis = 180000   // 3 منٹ (ویڈیو اپلوڈ کے لیے)
+                socketTimeoutMillis = 180000
+            }
+            expectSuccess = false
         }
-        // ٹائم آؤٹ کو تھوڑا بڑھا دیا ہے تاکہ بڑی فائلیں اپلوڈ ہو سکیں
-        expectSuccess = false 
     }
 
     // --- Auth APIs ---
@@ -93,26 +109,43 @@ object ApiService {
         return response.body()
     }
 
-    // --- Video Upload APIs ---
+    // --- 🚀 Streamtape Video Upload (2-Step Process) ---
     
-    /**
-     * 1. ویڈیو کو تھرڈ پارٹی API پر اپلوڈ کرتا ہے
-     */
-    suspend fun uploadVideoToExternalApi(fileBytes: ByteArray, fileName: String): VideoUploadResponse {
-        val response = client.post("https://anonmp4api.to/upload") {
+    suspend fun uploadVideoToStreamtape(
+        fileBytes: ByteArray, 
+        fileName: String
+    ): StreamtapeFinalResponse {
+        
+        // مرحلہ 1: Streamtape سے عارضی اپلوڈ URL حاصل کریں
+        val urlResponse = client.get("https://api.streamtape.com/file/ul?login=$STREAMTAPE_LOGIN&key=$STREAMTAPE_KEY")
+            .body<StreamtapeUploadUrlResponse>()
+        
+        if (urlResponse.status != 200 || urlResponse.result?.url == null) {
+            throw Exception("Failed to get upload URL: ${urlResponse.msg}")
+        }
+
+        val uploadUrl = urlResponse.result.url
+        println("✅ Got Upload URL: $uploadUrl")
+
+        // مرحلہ 2: فائل کو اس URL پر بھیجیں (نوٹ: فیلڈ کا نام "file1" ہونا چاہیے)
+        val finalResponse = client.post(uploadUrl) {
             setBody(MultiPartFormDataContent(formData {
-                append("file", fileBytes, Headers.build {
+                append("file1", fileBytes, Headers.build {
                     append(HttpHeaders.ContentType, "video/mp4")
                     append(HttpHeaders.ContentDisposition, "filename=\"$fileName\"")
                 })
             }))
+        }.body<StreamtapeFinalResponse>()
+
+        if (finalResponse.status != 200) {
+            throw Exception("Upload failed: ${finalResponse.msg}")
         }
-        return response.body()
+
+        println("✅ Upload Successful! Video URL: ${finalResponse.result?.url}")
+        return finalResponse
     }
 
-    /**
-     * 2. اپلوڈ کے بعد ویڈیو کا ڈیٹا ہمارے اپنے PHP ڈیٹا بیس میں محفوظ کرتا ہے
-     */
+    // --- Save to Local DB ---
     suspend fun saveVideoMetadata(
         title: String,
         description: String,
@@ -134,6 +167,4 @@ object ApiService {
                 "duration" to duration
             ))
         }
-        return response.body()
-    }
-}
+        return response.body()YOUR_API
