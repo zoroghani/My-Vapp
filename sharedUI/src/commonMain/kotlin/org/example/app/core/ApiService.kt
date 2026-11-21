@@ -3,6 +3,7 @@ package org.example.app.core
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.plugins.contentnegotiation.*
+import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.request.*
 import io.ktor.client.request.forms.*
 import io.ktor.http.*
@@ -35,7 +36,6 @@ data class UserData(
     val profileImage: String? = null
 )
 
-// 👇 Streamtape Upload URL Response
 @Serializable
 data class StreamtapeUploadUrlResponse(
     val status: Int,
@@ -49,7 +49,6 @@ data class StreamtapeUploadResult(
     val valid_until: String
 )
 
-// 👇 Streamtape Final Upload Response
 @Serializable
 data class StreamtapeFinalResponse(
     val status: Int,
@@ -59,7 +58,7 @@ data class StreamtapeFinalResponse(
 
 @Serializable
 data class StreamtapeFinalResult(
-    val url: String,   // مثال: https://streamtape.com/v/xyz123/video.mp4
+    val url: String,
     val name: String
 )
 
@@ -69,9 +68,10 @@ data class StreamtapeFinalResult(
 
 object ApiService {
     
-    private const val BASE_URL = "https://testooo.cu.ma/php-admin-panel-master/source-code/admin/api/" // 👈 aا PHP URL یہاں لکھیں
+    // 👇 اپنا PHP URL یہاں لکھیں
+    private const val BASE_URL = "https://testooo.cu.ma/php-admin-panel-master/source-code/admin/api/" 
     
-    // 👇 اپنی Streamtape کی تفصیلات یہاں login
+    // 👇 اپنی Streamtape کی تفصیلات یہاں لکھیں
     private const val STREAMTAPE_LOGIN = "o9DarRp488uJykb" 
     private const val STREAMTAPE_KEY = "04d3d9a57b69adbdb681"     
 
@@ -83,16 +83,15 @@ object ApiService {
                     isLenient = true
                 })
             }
-            install(io.ktor.client.plugins.HttpTimeout) {
+            install(HttpTimeout) {
                 connectTimeoutMillis = 30000
-                requestTimeoutMillis = 180000   // 3 منٹ (ویڈیو اپلوڈ کے لیے)
+                requestTimeoutMillis = 180000
                 socketTimeoutMillis = 180000
             }
             expectSuccess = false
         }
     }
 
-    // --- Auth APIs ---
     suspend fun login(email: String, password: String): ApiResponse {
         val response = client.post("${BASE_URL}login.php") {
             contentType(ContentType.Application.Json)
@@ -101,7 +100,7 @@ object ApiService {
         return response.body()
     }
 
-    sususpe fun register(fullName: String, email: String, password: String): ApiResponse {
+    suspend fun register(fullName: String, email: String, password: String): ApiResponse {
         val response = client.post("${BASE_URL}register.php") {
             contentType(ContentType.Application.Json)
             setBody(RegisterRequest(fullName, email, password))
@@ -109,8 +108,6 @@ object ApiService {
         return response.body()
     }
 
-    // --- 🚀 Streamtape Video Upload (2-Step Process) ---
-    
     suspend fun uploadVideoToStreamtape(
         fileBytes: ByteArray, 
         fileName: String
@@ -125,9 +122,8 @@ object ApiService {
         }
 
         val uploadUrl = urlResponse.result.url
-        println("✅ Got Upload URL: $uploadUrl")
 
-        // مرحلہ 2: فائل کو اس URL پر بھیجیں (نوٹ: فیلڈ کا نام "file1" ہونا چاہیے)
+        // مرحلہ 2: فائل کو اس URL پر بھیجیں (فیلڈ کا نام "file1" ہونا چاہیے)
         val finalResponse = client.post(uploadUrl) {
             setBody(MultiPartFormDataContent(formData {
                 append("file1", fileBytes, Headers.build {
@@ -141,11 +137,9 @@ object ApiService {
             throw Exception("Upload failed: ${finalResponse.msg}")
         }
 
-        println("✅ Upload Successful! Video URL: ${finalResponse.result?.url}")
         return finalResponse
     }
 
-    // --- Save to Local DB ---
     suspend fun saveVideoMetadata(
         title: String,
         description: String,
@@ -167,4 +161,6 @@ object ApiService {
                 "duration" to duration
             ))
         }
-        return response.body()YOUR_API
+        return response.body()
+    }
+}
