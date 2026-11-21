@@ -99,7 +99,7 @@ object ApiService {
      * 1. ویڈیو کو تھرڈ پارٹی API پر اپلوڈ کرتا ہے
      */
     suspend fun uploadVideoToExternalApi(fileBytes: ByteArray, fileName: String): VideoUploadResponse {
-        val response = client.post("https://anonmp4api.xyz/upload") {
+        val response = client.post("https://anonmp4api.to/upload") {
             setBody(MultiPartFormDataContent(formData {
                 append("file", fileBytes, Headers.build {
                     append(HttpHeaders.ContentType, "video/mp4")
