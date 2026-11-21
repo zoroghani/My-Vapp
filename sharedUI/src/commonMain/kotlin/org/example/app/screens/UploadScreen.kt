@@ -209,65 +209,84 @@ class UploadScreen : Screen {
 
                 // 5️⃣ Upload بٹن (اصل اپلوڈ یہاں ہوگا)
                 Button(
-                    onClick = {
-                        scope.launch {
-                            isUploading = true
-                            progress = 0f
-                            try {
-                                val bytes = videoBytes
-                                val name = videoFileName ?: "video.mp4"
+    onClick = {
+        scope.launch {
+            isUploading = true
+            progress = 0f
+            
+            try {
+                // 👇 نیٹ ورک کال کو بیک گراؤنڈ تھریڈ پر بھیجیں
+                withContext(Dispatchers.IO) {
+                    val bytes = videoBytes
+                    val name = videoFileName ?: "video.mp4"
+                    
+                    println("🚀 STEP 1: Starting upload for $name...")
 
-                                if (bytes == null || bytes.isEmpty()) {
-                                    snackbarHostState.showSnackbar("Error: Could not read video file.")
-                                    isUploading = false
-                                    return@launch
-                                }
+                    if (bytes == null || bytes.isEmpty()) {
+                        throw Exception("File bytes are empty")
+                    }
 
-                                // 1. تھرڈ پارٹی API پر اپلوڈ
-                                val uploadResponse = ApiService.uploadVideoToExternalApi(bytes, name)
+                    println("🚀 STEP 2: Calling Third-Party API...")
+                    val uploadResponse = ApiService.uploadVideoToExternalApi(bytes, name)
+                    println("🚀 STEP 3: API Response received. Success = ${uploadResponse.success}")
 
-                                if (uploadResponse.success && uploadResponse.watch_url != null) {
-                                    // 2. اپنے PHP ڈیٹا بیس میں محفوظ کریں
-                                    val saveResponse = ApiService.saveVideoMetadata(
-                                        title = title,
-                                        description = description,
-                                        categoryId = 1, 
-                                        uploaderId = 1, 
-                                        videoUrl = uploadResponse.watch_url!!,
-                                        thumbnailUrl = uploadResponse.thumbnail ?: "",
-                                        duration = "00:00" 
-                                    )
+                    if (uploadResponse.success && uploadResponse.watch_url != null) {
+                        println("🚀 STEP 4: Saving to local DB...")
+                        val saveResponse = ApiService.saveVideoMetadata(
+                            title = title,
+                            description = description,
+                            categoryId = 1, 
+                            uploaderId = 1, 
+                            videoUrl = uploadResponse.watch_url!!,
+                            thumbnailUrl = uploadResponse.thumbnail ?: "",
+                            duration = "00:00" 
+                        )
+                        println("🚀 STEP 5: DB Response = ${saveResponse.status}")
 
-                                    if (saveResponse.status == "success") {
-                                        isUploaded = true
-                                        progress = 1f
-                                        snackbarHostState.showSnackbar("Video uploaded and saved successfully! 🎉")
-                                        navigator.pop() 
-                                    } else {
-                                        snackbarHostState.showSnackbar("Upload succeeded, but saving to DB failed: ${saveResponse.message}")
-                                    }
-                                } else {
-                                    snackbarHostState.showSnackbar("Upload failed: ${uploadResponse.error?.message ?: "Unknown error"}")
-                                }
-
-                            } catch (e: Exception) {
-                                snackbarHostState.showSnackbar("Network Error: ${e.message}")
-                            } finally {
-                                isUploading = false
+                        if (saveResponse.status == "success") {
+                            isUploaded = true
+                            progress = 1f
+                            // UI اپ ڈیٹ کے لیے Main تھریڈ پر واپس آئیں
+                            kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+                                snackbarHostState.showSnackbar("Video uploaded successfully! 🎉")
+                                navigator.pop() 
+                            }
+                        } else {
+                            kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+                                snackbarHostState.showSnackbar("DB Save Failed: ${saveResponse.message}")
                             }
                         }
-                    },
-                    enabled = canUpload,
-                    modifier = Modifier.fillMaxWidth().height(52.dp),
-                    shape = RoundedCornerShape(26.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF3066E8), contentColor = Color.White)
-                ) {
-                    if (isUploading) {
-                        CircularProgressIndicator(modifier = Modifier.size(24.dp), color = Color.White, strokeWidth = 3.dp)
-                        Spacer(modifier = Modifier.width(8.dp))
+                    } else {
+                        kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+                            snackbarHostState.showSnackbar("Upload Failed: ${uploadResponse.error?.message ?: "Unknown"}")
+                        }
                     }
-                    Text(if (isUploading) "Uploading..." else "Upload", fontSize = 16.sp, fontWeight = FontWeight.Bold)
                 }
+
+            } catch (e: Throwable) { 
+                // 👇 Throwable پکڑے گا: Exception, Error, OutOfMemory, سب کچھ!
+                println("❌ CRASH PREVENTED! Error: ${e.message}")
+                e.printStackTrace() // Logcat میں پوری تفصیل دیکھنے کے لیے
+                
+                kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+                    snackbarHostState.showSnackbar("App Error: ${e.message ?: e.toString()}")
+                }
+            } finally {
+                isUploading = false
+            }
+        }
+    },
+    enabled = canUpload,
+    modifier = Modifier.fillMaxWidth().height(52.dp),
+    shape = RoundedCornerShape(26.dp),
+    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF3066E8), contentColor = Color.White)
+) {
+    if (isUploading) {
+        CircularProgressIndicator(modifier = Modifier.size(24.dp), color = Color.White, strokeWidth = 3.dp)
+        Spacer(modifier = Modifier.width(8.dp))
+    }
+    Text(if (isUploading) "Uploading..." else "Upload", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+}
                 Spacer(modifier = Modifier.height(24.dp))
             }
         }
