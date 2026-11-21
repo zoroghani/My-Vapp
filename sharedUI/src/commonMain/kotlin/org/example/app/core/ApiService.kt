@@ -98,8 +98,8 @@ object ApiService {
     /**
      * 1. ویڈیو کو تھرڈ پارٹی API پر اپلوڈ کرتا ہے
      */
-    suspend fun uploadVideoToExternalApi(fileBytes: ByteArray, fileName: String): VideoUploadResponse {
-        val response = client.post("https://anonmp4api.xyz/upload") {
+        suspend fun uploadVideoToExternalApi(fileBytes: ByteArray, fileName: String): VideoUploadResponse {
+        val response = client.post("https://anonmp4api.to/upload") {
             setBody(MultiPartFormDataContent(formData {
                 append("file", fileBytes, Headers.build {
                     append(HttpHeaders.ContentType, "video/mp4")
@@ -107,7 +107,24 @@ object ApiService {
                 })
             }))
         }
-        return response.body()
+
+        // 👇 پہلے خام (Raw) ریسپانس چیک کریں تاکہ کریش نہ ہو
+        val rawText = response.bodyAsText()
+        
+        return try {
+            // اگر ریسپانس درست JSON ہے تو اسے Parse کریں
+            Json.decodeFromString<VideoUploadResponse>(rawText)
+        } catch (e: Exception) {
+            // 👇 اگر JSON نہیں ہے (مثلاً HTML ایرر)، تو یہ دکھائیں
+            println("⚠️ API Raw Response (Not JSON): $rawText")
+            VideoUploadResponse(
+                success = false,
+                error = UploadError(
+                    code = "PARSE_ERROR",
+                    message = "Server returned invalid response: ${response.status.value} - ${rawText.take(100)}..."
+                )
+            )
+        }
     }
 
     /**
