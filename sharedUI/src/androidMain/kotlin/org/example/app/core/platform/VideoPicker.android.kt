@@ -10,7 +10,7 @@ import androidx.compose.ui.platform.LocalContext
 import kotlinx.coroutines.launch
 
 @Composable
-actual fun rememberVideoPicker(onVideoPicked: (ByteArray, String) -> Unit): () -> Unit {
+actual fun rememberVideoPicker(onVideoPicked: (String, ByteArray, String) -> Unit): () -> Unit {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     
@@ -20,14 +20,14 @@ actual fun rememberVideoPicker(onVideoPicked: (ByteArray, String) -> Unit): () -
         if (uri != null) {
             scope.launch {
                 val bytes = context.contentResolver.openInputStream(uri)?.use { it.readBytes() } ?: byteArrayOf()
-                
                 val fileName = context.contentResolver.query(uri, null, null, null, null)?.use { cursor ->
                     val nameIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
                     cursor.moveToFirst()
                     cursor.getString(nameIndex)
                 } ?: "video.mp4"
                 
-                onVideoPicked(bytes, fileName)
+                // ترتیب: 1. URI (String), 2. Bytes (ByteArray), 3. Name (String)
+                onVideoPicked(uri.toString(), bytes, fileName)
             }
         }
     }
