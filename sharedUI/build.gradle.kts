@@ -30,6 +30,7 @@ kotlin {
     }
     sourceSets {
         androidMain.dependencies {
+            implementation("io.ktor:ktor-client-okhttp:2.3.12")
             implementation("androidx.activity:activity-compose:1.9.0")
             implementation(libs.compose.uiToolingPreview)
             implementation(libs.compose.uiTooling)
@@ -53,9 +54,13 @@ kotlin {
             implementation(compose.materialIconsExtended)
             implementation(libs.coil.network.okhttp)
             implementation("io.ktor:ktor-client-core:2.3.12")
-    implementation("io.ktor:ktor-client-content-negotiation:2.3.12")
-    implementation("io.ktor:ktor-serialization-kotlinx-json:2.3.12")
+            implementation("io.ktor:ktor-client-content-negotiation:2.3.12")
+            implementation("io.ktor:ktor-serialization-kotlinx-json:2.3.12")
         }
+        jvmMain.dependencies {
+            implementation("io.ktor:ktor-client-cio:2.3.12")
+        }
+
         commonTest.dependencies {
             implementation(libs.kotlin.test)
         }
