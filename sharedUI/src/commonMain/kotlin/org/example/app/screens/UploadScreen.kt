@@ -3,10 +3,6 @@ package org.example.app.screens
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.runtime.rememberCoroutineScope
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -20,13 +16,17 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
-import org.example.app.core.platform.rememberVideoPicker
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.example.app.core.ApiService
+import org.example.app.core.platform.rememberVideoPicker
 
 private val videoCategories = listOf(
     "None", "Autos & Vehicles", "Comedy", "Education", "Entertainment",
@@ -56,7 +56,6 @@ class UploadScreen : Screen {
         val snackbarHostState = remember { SnackbarHostState() }
         val scope = rememberCoroutineScope()
 
-        // 🎬 ویڈیو پکر — فائل منتخب ہوتے ہی صرف اسٹیٹ اپ ڈیٹ ہوگی
         val pickVideo = rememberVideoPicker { uri: String, bytes: ByteArray, name: String ->
             videoPath = uri
             videoBytes = bytes
@@ -90,7 +89,7 @@ class UploadScreen : Screen {
                     .verticalScroll(rememberScrollState())
                     .padding(16.dp)
             ) {
-                // 1️⃣ اوپر والا حصہ: Select file / Uploading
+                // 1️⃣ اوپر والا حصہ
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -130,7 +129,7 @@ class UploadScreen : Screen {
                                 Spacer(modifier = Modifier.height(12.dp))
                                 LinearProgressIndicator(
                                     progress = { progress },
-                                    modifier = Modifier.weight(1f).height(8.dp).clip(RoundedCornerShape(4.dp)),
+                                    modifier = Modifier.fillMaxWidth().height(8.dp).clip(RoundedCornerShape(4.dp)),
                                     color = Color(0xFF3066E8),
                                     trackColor = Color.White.copy(alpha = 0.4f)
                                 )
@@ -147,7 +146,7 @@ class UploadScreen : Screen {
 
                 Spacer(modifier = Modifier.height(20.dp))
 
-                // 2️⃣ Title فیلڈ
+                // 2️⃣ Title
                 Text("Title", fontSize = 13.sp, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Spacer(modifier = Modifier.height(6.dp))
                 OutlinedTextField(
@@ -158,11 +157,11 @@ class UploadScreen : Screen {
                     singleLine = true,
                     shape = RoundedCornerShape(12.dp)
                 )
-                Text(text = "${title.length}/100", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.fillMaxWidth().padding(top = 4.dp), textAlign = androidx.compose.ui.text.style.TextAlign.End)
+                Text(text = "${title.length}/100", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.fillMaxWidth().padding(top = 4.dp), textAlign = TextAlign.End)
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                // 3️⃣ Description فیلڈ
+                // 3️⃣ Description
                 OutlinedTextField(
                     value = description,
                     onValueChange = { description = it },
@@ -174,7 +173,7 @@ class UploadScreen : Screen {
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // 4️⃣ Category ڈراپ ڈاؤن
+                // 4️⃣ Category
                 Box {
                     OutlinedTextField(
                         value = category ?: "",
@@ -207,81 +206,75 @@ class UploadScreen : Screen {
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                // 5️⃣ Upload بٹن (اصل اپلوڈ یہاں ہوگا)
+                // 5️⃣ Upload Button
                 Button(
-    Button(
-    onClick = {
-        scope.launch {
-            isUploading = true
-            progress = 0f
-            
-            try {
-                withContext(Dispatchers.IO) {
-                    val bytes = videoBytes
-                    val name = videoFileName ?: "video.mp4"
-                    
-                    if (bytes == null || bytes.isEmpty()) {
-                        throw Exception("File bytes are empty")
-                    }
+                    onClick = {
+                        scope.launch {
+                            isUploading = true
+                            progress = 0f
+                            
+                            try {
+                                withContext(Dispatchers.IO) {
+                                    val bytes = videoBytes
+                                    val name = videoFileName ?: "video.mp4"
+                                    
+                                    if (bytes == null || bytes.isEmpty()) {
+                                        throw Exception("File bytes are empty")
+                                    }
 
-                    println("🚀 STEP 1: Starting Streamtape Upload...")
-                    
-                    // 👇 نیا Streamtape اپلوڈ فنکشن کال کریں
-                    val uploadResponse = ApiService.uploadVideoToStreamtape(bytes, name)
-                    
-                    if (uploadResponse.status == 200 && uploadResponse.result?.url != null) {
-                        println("🚀 STEP 2: Saving to Local PHP Database...")
-                        
-                        val streamtapeUrl = uploadResponse.result.url!!
-                        
-                        val saveResponse = ApiService.saveVideoMetadata(
-                            title = title,
-                            description = description,
-                            categoryId = 1, // 👈 بعد میں ڈائنامک کریں گے
-                            uploaderId = 1, // 👈 بعد میں لاگ ان یوزر کی ID لگائیں گے
-                            videoUrl = streamtapeUrl, // 👈 Streamtape کا اصل لنک
-                            thumbnailUrl = "", // Streamtape خودکار تھمب نیل بناتا ہے، بعد میں API سے لے سکتے ہیں
-                            duration = "00:00" 
-                        )
+                                    val uploadResponse = ApiService.uploadVideoToStreamtape(bytes, name)
+                                    
+                                    if (uploadResponse.status == 200 && uploadResponse.result?.url != null) {
+                                        val streamtapeUrl = uploadResponse.result.url!!
+                                        
+                                        val saveResponse = ApiService.saveVideoMetadata(
+                                            title = title,
+                                            description = description,
+                                            categoryId = 1,
+                                            uploaderId = 1,
+                                            videoUrl = streamtapeUrl,
+                                            thumbnailUrl = "",
+                                            duration = "00:00"
+                                        )
 
-                        if (saveResponse.status == "success") {
-                            withContext(Dispatchers.Main) {
-                                isUploaded = true
-                                progress = 1f
-                                snackbarHostState.showSnackbar("Video uploaded successfully! 🎉")
-                                navigator.pop() 
-                            }
-                        } else {
-                            withContext(Dispatchers.Main) {
-                                snackbarHostState.showSnackbar("DB Save Failed: ${saveResponse.message}")
+                                        if (saveResponse.status == "success") {
+                                            withContext(Dispatchers.Main) {
+                                                isUploaded = true
+                                                progress = 1f
+                                                snackbarHostState.showSnackbar("Video uploaded successfully! 🎉")
+                                                navigator.pop() 
+                                            }
+                                        } else {
+                                            withContext(Dispatchers.Main) {
+                                                snackbarHostState.showSnackbar("DB Save Failed: ${saveResponse.message}")
+                                            }
+                                        }
+                                    }
+                                }
+                            } catch (e: Throwable) {
+                                println("❌ CRASH PREVENTED! Error: ${e.message}")
+                                e.printStackTrace()
+                                withContext(Dispatchers.Main) {
+                                    snackbarHostState.showSnackbar("Upload Error: ${e.message ?: e.toString()}")
+                                }
+                            } finally {
+                                withContext(Dispatchers.Main) {
+                                    isUploading = false
+                                }
                             }
                         }
+                    },
+                    enabled = canUpload,
+                    modifier = Modifier.fillMaxWidth().height(52.dp),
+                    shape = RoundedCornerShape(26.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF3066E8), contentColor = Color.White)
+                ) {
+                    if (isUploading) {
+                        CircularProgressIndicator(modifier = Modifier.size(24.dp), color = Color.White, strokeWidth = 3.dp)
+                        Spacer(modifier = Modifier.width(8.dp))
                     }
+                    Text(if (isUploading) "Uploading..." else "Upload", fontSize = 16.sp, fontWeight = FontWeight.Bold)
                 }
-            } catch (e: Throwable) {
-                println("❌ CRASH PREVENTED! Error: ${e.message}")
-                e.printStackTrace()
-                withContext(Dispatchers.Main) {
-                    snackbarHostState.showSnackbar("Upload Error: ${e.message ?: e.toString()}")
-                }
-            } finally {
-                withContext(Dispatchers.Main) {
-                    isUploading = false
-                }
-            }
-        }
-    },
-    enabled = canUpload,
-    modifier = Modifier.fillMaxWidth().height(52.dp),
-    shape = RoundedCornerShape(26.dp),
-    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF3066E8), contentColor = Color.White)
-) {
-    if (isUploading) {
-        CircularProgressIndicator(modifier = Modifier.size(24.dp), color = Color.White, strokeWidth = 3.dp)
-        Spacer(modifier = Modifier.width(8.dp))
-    }
-    Text(if (isUploading) "Uploading..." else "Upload", fontSize = 16.sp, fontWeight = FontWeight.Bold)
-}
                 Spacer(modifier = Modifier.height(24.dp))
             }
         }
