@@ -55,7 +55,7 @@ class UploadScreen : Screen {
         val scope = rememberCoroutineScope()
 
         // 🎬 ویڈیو پکر — فائل منتخب ہوتے ہی صرف اسٹیٹ اپ ڈیٹ ہوگی
-        val pickVideo = rememberVideoPicker { uri, bytes, name ->
+        val pickVideo = rememberVideoPicker { uri: String, bytes: ByteArray, name: String ->
             videoPath = uri
             videoBytes = bytes
             videoFileName = name
