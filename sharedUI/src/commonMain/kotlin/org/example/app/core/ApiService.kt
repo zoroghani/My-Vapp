@@ -69,7 +69,7 @@ data class StreamtapeFinalResult(
 
 object ApiService {
     
-    private const val BASE_URL = "http://192.168.1.10/your_project/api/" // 👈 اپنا PHP URL یہاں لکھیں
+    private const val BASE_URL = "https://testooo.cu.ma/php-admin-panel-master/source-code/admin/api/" // 👈 aا PHP URL یہاں لکھیں
     
     // 👇 اپنی Streamtape کی تفصیلات یہاں login
     private const val STREAMTAPE_LOGIN = "o9DarRp488uJykb" 
@@ -101,7 +101,7 @@ object ApiService {
         return response.body()
     }
 
-    suspend fun register(fullName: String, email: String, password: String): ApiResponse {
+    sususpe fun register(fullName: String, email: String, password: String): ApiResponse {
         val response = client.post("${BASE_URL}register.php") {
             contentType(ContentType.Application.Json)
             setBody(RegisterRequest(fullName, email, password))
