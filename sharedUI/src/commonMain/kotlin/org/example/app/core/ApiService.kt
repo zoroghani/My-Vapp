@@ -72,8 +72,8 @@ object ApiService {
     private const val BASE_URL = "https://testooo.cu.ma/php-admin-panel-master/source-code/admin/api/" 
     
     // 👇 اپنی Streamtape کی تفصیلات یہاں لکھیں
-    private const val STREAMTAPE_LOGIN = "o9DarRp488uJykb" 
-    private const val STREAMTAPE_KEY = "04d3d9a57b69adbdb681"     
+    private const val STREAMTAPE_LOGIN = "04d3d9a57b69adbdb681" 
+    private const val STREAMTAPE_KEY = "o9DarRp488uJykb"     
 
     val client by lazy {
         HttpClient {
