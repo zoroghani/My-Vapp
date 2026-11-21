@@ -9,7 +9,6 @@ import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
-import io.ktor.client.call.bodyAsText
 
 // ==========================================
 // 1. ڈیٹا کلاسز (JSON Mapping)
@@ -99,7 +98,7 @@ object ApiService {
     /**
      * 1. ویڈیو کو تھرڈ پارٹی API پر اپلوڈ کرتا ہے
      */
-        suspend fun uploadVideoToExternalApi(fileBytes: ByteArray, fileName: String): VideoUploadResponse {
+    suspend fun uploadVideoToExternalApi(fileBytes: ByteArray, fileName: String): VideoUploadResponse {
         val response = client.post("https://anonmp4api.to/upload") {
             setBody(MultiPartFormDataContent(formData {
                 append("file", fileBytes, Headers.build {
@@ -108,24 +107,7 @@ object ApiService {
                 })
             }))
         }
-
-        // 👇 پہلے خام (Raw) ریسپانس چیک کریں تاکہ کریش نہ ہو
-        val rawText = response.bodyAsText()
-        
-        return try {
-            // اگر ریسپانس درست JSON ہے تو اسے Parse کریں
-            Json.decodeFromString<VideoUploadResponse>(rawText)
-        } catch (e: Exception) {
-            // 👇 اگر JSON نہیں ہے (مثلاً HTML ایرر)، تو یہ دکھائیں
-            println("⚠️ API Raw Response (Not JSON): $rawText")
-            VideoUploadResponse(
-                success = false,
-                error = UploadError(
-                    code = "PARSE_ERROR",
-                    message = "Server returned invalid response: ${response.status.value} - ${rawText.take(100)}..."
-                )
-            )
-        }
+        return response.body()
     }
 
     /**
