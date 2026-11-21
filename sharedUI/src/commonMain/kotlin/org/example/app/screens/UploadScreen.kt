@@ -209,70 +209,65 @@ class UploadScreen : Screen {
 
                 // 5️⃣ Upload بٹن (اصل اپلوڈ یہاں ہوگا)
                 Button(
+    Button(
     onClick = {
         scope.launch {
             isUploading = true
             progress = 0f
             
             try {
-                // 👇 نیٹ ورک کال کو بیک گراؤنڈ تھریڈ پر بھیجیں
                 withContext(Dispatchers.IO) {
                     val bytes = videoBytes
                     val name = videoFileName ?: "video.mp4"
                     
-                    println("🚀 STEP 1: Starting upload for $name...")
-
                     if (bytes == null || bytes.isEmpty()) {
                         throw Exception("File bytes are empty")
                     }
 
-                    println("🚀 STEP 2: Calling Third-Party API...")
-                    val uploadResponse = ApiService.uploadVideoToExternalApi(bytes, name)
-                    println("🚀 STEP 3: API Response received. Success = ${uploadResponse.success}")
-
-                    if (uploadResponse.success && uploadResponse.watch_url != null) {
-                        println("🚀 STEP 4: Saving to local DB...")
+                    println("🚀 STEP 1: Starting Streamtape Upload...")
+                    
+                    // 👇 نیا Streamtape اپلوڈ فنکشن کال کریں
+                    val uploadResponse = ApiService.uploadVideoToStreamtape(bytes, name)
+                    
+                    if (uploadResponse.status == 200 && uploadResponse.result?.url != null) {
+                        println("🚀 STEP 2: Saving to Local PHP Database...")
+                        
+                        val streamtapeUrl = uploadResponse.result.url!!
+                        
                         val saveResponse = ApiService.saveVideoMetadata(
                             title = title,
                             description = description,
-                            categoryId = 1, 
-                            uploaderId = 1, 
-                            videoUrl = uploadResponse.watch_url!!,
-                            thumbnailUrl = uploadResponse.thumbnail ?: "",
+                            categoryId = 1, // 👈 بعد میں ڈائنامک کریں گے
+                            uploaderId = 1, // 👈 بعد میں لاگ ان یوزر کی ID لگائیں گے
+                            videoUrl = streamtapeUrl, // 👈 Streamtape کا اصل لنک
+                            thumbnailUrl = "", // Streamtape خودکار تھمب نیل بناتا ہے، بعد میں API سے لے سکتے ہیں
                             duration = "00:00" 
                         )
-                        println("🚀 STEP 5: DB Response = ${saveResponse.status}")
 
                         if (saveResponse.status == "success") {
-                            isUploaded = true
-                            progress = 1f
-                            // UI اپ ڈیٹ کے لیے Main تھریڈ پر واپس آئیں
-                            kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+                            withContext(Dispatchers.Main) {
+                                isUploaded = true
+                                progress = 1f
                                 snackbarHostState.showSnackbar("Video uploaded successfully! 🎉")
                                 navigator.pop() 
                             }
                         } else {
-                            kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+                            withContext(Dispatchers.Main) {
                                 snackbarHostState.showSnackbar("DB Save Failed: ${saveResponse.message}")
                             }
                         }
-                    } else {
-                        kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
-                            snackbarHostState.showSnackbar("Upload Failed: ${uploadResponse.error?.message ?: "Unknown"}")
-                        }
                     }
                 }
-
-            } catch (e: Throwable) { 
-                // 👇 Throwable پکڑے گا: Exception, Error, OutOfMemory, سب کچھ!
+            } catch (e: Throwable) {
                 println("❌ CRASH PREVENTED! Error: ${e.message}")
-                e.printStackTrace() // Logcat میں پوری تفصیل دیکھنے کے لیے
-                
-                kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
-                    snackbarHostState.showSnackbar("App Error: ${e.message ?: e.toString()}")
+                e.printStackTrace()
+                withContext(Dispatchers.Main) {
+                    snackbarHostState.showSnackbar("Upload Error: ${e.message ?: e.toString()}")
                 }
             } finally {
-                isUploading = false
+                withContext(Dispatchers.Main) {
+                    isUploading = false
+                }
             }
         }
     },
