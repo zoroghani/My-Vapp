@@ -228,15 +228,25 @@ class UploadScreen : Screen {
                                     if (uploadResponse.status == 200 && uploadResponse.result?.url != null) {
                                         val streamtapeUrl = uploadResponse.result.url!!
                                         
+                                        val uploadResponse = ApiService.uploadVideoToStreamtape(bytes, name)
+
+                                    if (uploadResponse.status == 200 && uploadResponse.result?.url != null) {
+                                    // URL میں سے File ID نکالیں (مثال: https://streamtape.com/v/XYZ123/name.mp4 -> XYZ123)
+                                        val fileId = uploadResponse.result.url.substringAfter("/v/").substringBefore("/")
+    
+                                    // 👇 Raw MP4 لنک حاصل کریں (بغیر اشتہارات کے)
+                                        val rawMp4Url = ApiService.getRawVideoUrl(fileId)
+    
+        // اپنے PHP ڈیٹا بیس میں Raw لنک سیو کریں
                                         val saveResponse = ApiService.saveVideoMetadata(
-                                            title = title,
-                                            description = description,
-                                            categoryId = 1,
-                                            uploaderId = 1,
-                                            videoUrl = streamtapeUrl,
-                                            thumbnailUrl = uploadResponse.result.thumbnail ?: "",
-                                            duration = "00:00"
-                                        )
+                                              title = title,
+                                              description = description,
+                                              categoryId = 1,
+                                              uploaderId = 1,
+                                              videoUrl = rawMp4Url, // 👈 یہاں Raw MP4 لنک جا رہا ہے!
+                                              thumbnailUrl = uploadResponse.result.thumbnail ?: "",
+                                              duration = "00:00"
+                                         )
 
                                         if (saveResponse.status == "success") {
                                             withContext(Dispatchers.Main) {
