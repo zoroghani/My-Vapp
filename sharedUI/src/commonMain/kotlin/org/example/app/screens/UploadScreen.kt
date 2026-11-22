@@ -210,7 +210,9 @@ class UploadScreen : Screen {
                 // 5️⃣ Upload Button
                 Button(
                     onClick = {
-                        if (isUploading) return@onClick
+                        // ✅ 1. یہ لائن onClick کے بالکل شروع میں ہونی چاہیے
+                        if (isUploading) return@onClick 
+
                         scope.launch {
                             isUploading = true
                             progress = 0f
@@ -243,7 +245,8 @@ class UploadScreen : Screen {
                                             withContext(Dispatchers.Main) {
                                                 isUploaded = true
                                                 progress = 1f
-                                                navigator.push(VideoPlayerScreen(streamtapeUrl))
+                                                // ✅ 2. یہاں videoTitle بھی پاس کریں (title variable کا استعمال کریں)
+                                                navigator.push(VideoPlayerScreen(videoUrl = streamtapeUrl, videoTitle = title))
                                             }
                                         } else {
                                             withContext(Dispatchers.Main) {
@@ -270,6 +273,7 @@ class UploadScreen : Screen {
                     shape = RoundedCornerShape(26.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF3066E8), contentColor = Color.White)
                 ) {
+                    // ✅ 3. یہاں صرف UI دکھانی ہے، return@onClick یہاں سے ہٹا دیں
                     if (isUploading) {
                         CircularProgressIndicator(modifier = Modifier.size(24.dp), color = Color.White, strokeWidth = 3.dp)
                         Spacer(modifier = Modifier.width(8.dp))
