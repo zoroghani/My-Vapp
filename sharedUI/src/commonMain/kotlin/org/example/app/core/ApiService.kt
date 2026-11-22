@@ -7,6 +7,7 @@ import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.request.*
 import io.ktor.client.request.forms.*
 import io.ktor.http.*
+import io.ktor.client.call.bodyAsText
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -84,7 +85,8 @@ data class StreamtapeFinalResponse(
 @Serializable
 data class StreamtapeFinalResult(
     val url: String,
-    val name: String
+    val name: String,
+    val thumbnail: String = ""
 )
 
 // ==========================================
