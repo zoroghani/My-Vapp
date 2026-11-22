@@ -233,7 +233,7 @@ class UploadScreen : Screen {
                                             categoryId = 1,
                                             uploaderId = 1,
                                             videoUrl = streamtapeUrl,
-                                            thumbnailUrl = "",
+                                            thumbnailUrl = uploadResponse.result.thumbnail ?: "",
                                             duration = "00:00"
                                         )
 
