@@ -13,7 +13,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
 // ==========================================
-// 1. ڈیٹا کلاسز
+// 1. ڈیٹا کلاسز (Data Classes)
 // ==========================================
 
 @Serializable
@@ -37,7 +37,7 @@ data class UserData(
     val profileImage: String? = null
 )
 
-// 👇 Streamtape کے لیے
+// --- Streamtape Upload Classes ---
 @Serializable
 data class StreamtapeUploadUrlResponse(
     val status: Int,
@@ -90,7 +90,36 @@ data class StreamtapeFinalResult(
     val thumbnail: String = ""
 )
 
-// 👇 یہ نئی کلاس Serialization ایرر کا مستقل حل ہے
+// --- Streamtape Raw MP4 Download Classes ---
+@Serializable
+data class StreamtapeTicketResponse(
+    val status: Int,
+    val msg: String,
+    val result: TicketResult?
+)
+
+@Serializable
+data class TicketResult(
+    val ticket: String,
+    val wait_time: Int,
+    val valid_until: String
+)
+
+@Serializable
+data class StreamtapeDlResponse(
+    val status: Int,
+    val msg: String,
+    val result: DlResult?
+)
+
+@Serializable
+data class DlResult(
+    val name: String,
+    val size: Long,
+    val url: String // 👈 یہی وہ Raw MP4 لنک ہے جس میں کوئی اشتہار نہیں
+)
+
+// --- Save Video Request (Serialization Crash کا مستقل حل) ---
 @Serializable
 data class SaveVideoRequest(
     val title: String,
@@ -102,13 +131,17 @@ data class SaveVideoRequest(
     val duration: String
 )
 
+
 // ==========================================
-// 2. API سروس
+// 2. API سروس (API Service)
 // ==========================================
 
 object ApiService {
 
-    private const val BASE_URL = "http://testooo.cu.ma/php-admin-panel-master/source-code/admin/api/"
+    // ⚠️ انتہائی اہم: یہاں اپنا اصل PHP API URL لکھیں
+    private const val BASE_URL = "http://testooo.cu.ma/php-admin-panel-master/source-code/admin/api/" 
+    
+    // ⚠️ انتہائی اہم: یہاں اپنی Streamtape کی اصل Login اور Key لکھیں
     private const val STREAMTAPE_LOGIN = "04d3d9a57b69adbdb681"
     private const val STREAMTAPE_KEY = "o9DarRp488uJykb"
 
@@ -122,7 +155,7 @@ object ApiService {
             }
             install(HttpTimeout) {
                 connectTimeoutMillis = 60000
-                requestTimeoutMillis = 600000   // 👈 10 منٹ (161MB کے لیے)
+                requestTimeoutMillis = 600000   // 👈 10 منٹ (بڑی فائلز کے لیے)
                 socketTimeoutMillis = 600000
             }
             expectSuccess = false
@@ -162,7 +195,7 @@ object ApiService {
         val fileId = uploadUrl.substringAfterLast("/")
         println("✅ Got Upload URL. File ID = $fileId")
 
-        // مرحلہ 2: فائل اپلوڈ کریں (raw bytes واپس آتے ہیں، JSON نہیں)
+        // مرحلہ 2: فائل اپلوڈ کریں
         val uploadResponse = client.post(uploadUrl) {
             setBody(MultiPartFormDataContent(formData {
                 append("file1", fileBytes, Headers.build {
@@ -181,7 +214,7 @@ object ApiService {
         val watchUrl = videoInfo?.link ?: "https://streamtape.com/v/$fileId"
         println("✅ Watch URL = $watchUrl")
 
-        // مرحلہ 4: تھمب نیل
+        // مرحلہ 4: تھمب نیل حاصل کریں
         val thumbResponse = client.get("https://api.streamtape.com/file/getsplash?file=$fileId&login=$STREAMTAPE_LOGIN&key=$STREAMTAPE_KEY")
             .body<StreamtapeThumbResponse>()
         val thumbnailUrl = thumbResponse.result ?: ""
@@ -198,7 +231,28 @@ object ApiService {
         )
     }
 
-    // 👇 یہاں mapOf ہٹا کر SaveVideoRequest استعمال کیا ہے
+    // 👇 یہ فنکشن File ID لے کر اشتہارات سے پاک Raw MP4 لنک واپس کرے گا
+    suspend fun getRawVideoUrl(fileId: String): String {
+        // 1. ٹکٹ حاصل کریں
+        val ticketResponse = client.get("https://api.streamtape.com/file/dlticket?file=$fileId&login=$STREAMTAPE_LOGIN&key=$STREAMTAPE_KEY")
+            .body<StreamtapeTicketResponse>()
+            
+        if (ticketResponse.status != 200 || ticketResponse.result?.ticket == null) {
+            throw Exception("Failed to get download ticket: ${ticketResponse.msg}")
+        }
+
+        // 2. ٹکٹ استعمال کر کے Raw لنک حاصل کریں
+        val dlResponse = client.get("https://api.streamtape.com/file/dl?file=$fileId&ticket=${ticketResponse.result.ticket}")
+            .body<StreamtapeDlResponse>()
+            
+        if (dlResponse.status != 200 || dlResponse.result?.url == null) {
+            throw Exception("Failed to get raw video URL: ${dlResponse.msg}")
+        }
+
+        return dlResponse.result.url // صاف MP4 لنک
+    }
+
+    // 👇 ڈیٹا بیس میں ویڈیو محفوظ کرنے کا فنکشن (Serialization Crash فری)
     suspend fun saveVideoMetadata(
         title: String,
         description: String,
