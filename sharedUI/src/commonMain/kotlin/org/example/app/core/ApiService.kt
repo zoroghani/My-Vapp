@@ -6,15 +6,50 @@ import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.request.*
 import io.ktor.client.request.forms.*
-import io.ktor.http.*
 import io.ktor.client.statement.bodyAsText
+import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
 // ==========================================
-// 1. ڈیٹا کلاسز (JSON Mapping)
+// 1. ڈیٹا کلاسز
 // ==========================================
+
+@Serializable
+data class LoginRequest(val email: String, val password: String)
+
+@Serializable
+data class RegisterRequest(val fullName: String, val email: String, val password: String)
+
+@Serializable
+data class ApiResponse(
+    val status: String,
+    val message: String,
+    val data: UserData? = null
+)
+
+@Serializable
+data class UserData(
+    val id: Int,
+    val fullName: String,
+    val email: String,
+    val profileImage: String? = null
+)
+
+// 👇 Streamtape کے لیے
+@Serializable
+data class StreamtapeUploadUrlResponse(
+    val status: Int,
+    val msg: String,
+    val result: StreamtapeUploadResult?
+)
+
+@Serializable
+data class StreamtapeUploadResult(
+    val url: String,
+    val valid_until: String
+)
 
 @Serializable
 data class StreamtapeInfoResponse(
@@ -42,40 +77,6 @@ data class StreamtapeThumbResponse(
 )
 
 @Serializable
-data class LoginRequest(val email: String, val password: String)
-
-@Serializable
-data class RegisterRequest(val fullName: String, val email: String, val password: String)
-
-@Serializable
-data class ApiResponse(
-    val status: String,
-    val message: String,
-    val data: UserData? = null
-)
-
-@Serializable
-data class UserData(
-    val id: Int,
-    val fullName: String,
-    val email: String,
-    val profileImage: String? = null
-)
-
-@Serializable
-data class StreamtapeUploadUrlResponse(
-    val status: Int,
-    val msg: String,
-    val result: StreamtapeUploadResult?
-)
-
-@Serializable
-data class StreamtapeUploadResult(
-    val url: String,
-    val valid_until: String
-)
-
-@Serializable
 data class StreamtapeFinalResponse(
     val status: Int,
     val msg: String,
@@ -89,18 +90,27 @@ data class StreamtapeFinalResult(
     val thumbnail: String = ""
 )
 
+// 👇 یہ نئی کلاس Serialization ایرر کا مستقل حل ہے
+@Serializable
+data class SaveVideoRequest(
+    val title: String,
+    val description: String,
+    val categoryId: Int,
+    val uploaderId: Int,
+    val videoUrl: String,
+    val thumbnailUrl: String,
+    val duration: String
+)
+
 // ==========================================
-// 2. API سروس (HTTP Client)
+// 2. API سروس
 // ==========================================
 
 object ApiService {
-    
-    // 👇 اپنا PHP URL یہاں لکھیں
-    private const val BASE_URL = "https://testooo.cu.ma/php-admin-panel-master/source-code/admin/api/" 
-    
-    // 👇 اپنی Streamtape کی تفصیلات یہاں لکھیں
-    private const val STREAMTAPE_LOGIN = "04d3d9a57b69adbdb681" 
-    private const val STREAMTAPE_KEY = "o9DarRp488uJykb"     
+
+    private const val BASE_URL = "http://testooo.cu.ma/php-admin-panel-master/source-code/admin/api/"
+    private const val STREAMTAPE_LOGIN = "04d3d9a57b69adbdb681"
+    private const val STREAMTAPE_KEY = "o9DarRp488uJykb"
 
     val client by lazy {
         HttpClient {
@@ -111,9 +121,9 @@ object ApiService {
                 })
             }
             install(HttpTimeout) {
-                connectTimeoutMillis = 30000
-                requestTimeoutMillis = 180000
-                socketTimeoutMillis = 180000
+                connectTimeoutMillis = 60000
+                requestTimeoutMillis = 600000   // 👈 10 منٹ (161MB کے لیے)
+                socketTimeoutMillis = 600000
             }
             expectSuccess = false
         }
@@ -135,25 +145,24 @@ object ApiService {
         return response.body()
     }
 
-        suspend fun uploadVideoToStreamtape(
-        fileBytes: ByteArray, 
+    suspend fun uploadVideoToStreamtape(
+        fileBytes: ByteArray,
         fileName: String
     ): StreamtapeFinalResponse {
-        
+
         // مرحلہ 1: اپلوڈ URL حاصل کریں
         val urlResponse = client.get("https://api.streamtape.com/file/ul?login=$STREAMTAPE_LOGIN&key=$STREAMTAPE_KEY")
             .body<StreamtapeUploadUrlResponse>()
-        
+
         if (urlResponse.status != 200 || urlResponse.result?.url == null) {
             throw Exception("Failed to get upload URL: ${urlResponse.msg}")
         }
 
         val uploadUrl = urlResponse.result.url
-        // 👇 URL کے آخر سے File ID نکالیں
         val fileId = uploadUrl.substringAfterLast("/")
         println("✅ Got Upload URL. File ID = $fileId")
 
-        // مرحلہ 2: فائل اپلوڈ کریں (JSON نہیں آئے گا، اس لیے خام ٹیکسٹ پڑھیں)
+        // مرحلہ 2: فائل اپلوڈ کریں (raw bytes واپس آتے ہیں، JSON نہیں)
         val uploadResponse = client.post(uploadUrl) {
             setBody(MultiPartFormDataContent(formData {
                 append("file1", fileBytes, Headers.build {
@@ -162,18 +171,17 @@ object ApiService {
                 })
             }))
         }
-        val rawBody = uploadResponse.bodyAsText()
         println("✅ Upload done. Status = ${uploadResponse.status.value}")
 
-        // مرحلہ 3: file/info سے ویڈیو کا لنک حاصل کریں
+        // مرحلہ 3: file/info سے لنک حاصل کریں
         val infoResponse = client.get("https://api.streamtape.com/file/info?file=$fileId&login=$STREAMTAPE_LOGIN&key=$STREAMTAPE_KEY")
             .body<StreamtapeInfoResponse>()
-        
+
         val videoInfo = infoResponse.result?.get(fileId)
         val watchUrl = videoInfo?.link ?: "https://streamtape.com/v/$fileId"
         println("✅ Watch URL = $watchUrl")
 
-        // مرحلہ 4: تھمب نیل حاصل کریں
+        // مرحلہ 4: تھمب نیل
         val thumbResponse = client.get("https://api.streamtape.com/file/getsplash?file=$fileId&login=$STREAMTAPE_LOGIN&key=$STREAMTAPE_KEY")
             .body<StreamtapeThumbResponse>()
         val thumbnailUrl = thumbResponse.result ?: ""
@@ -189,6 +197,8 @@ object ApiService {
             )
         )
     }
+
+    // 👇 یہاں mapOf ہٹا کر SaveVideoRequest استعمال کیا ہے
     suspend fun saveVideoMetadata(
         title: String,
         description: String,
@@ -200,14 +210,14 @@ object ApiService {
     ): ApiResponse {
         val response = client.post("${BASE_URL}save_video.php") {
             contentType(ContentType.Application.Json)
-            setBody(mapOf(
-                "title" to title,
-                "description" to description,
-                "categoryId" to categoryId,
-                "uploaderId" to uploaderId,
-                "videoUrl" to videoUrl,
-                "thumbnailUrl" to thumbnailUrl,
-                "duration" to duration
+            setBody(SaveVideoRequest(
+                title = title,
+                description = description,
+                categoryId = categoryId,
+                uploaderId = uploaderId,
+                videoUrl = videoUrl,
+                thumbnailUrl = thumbnailUrl,
+                duration = duration
             ))
         }
         return response.body()
