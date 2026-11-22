@@ -241,8 +241,7 @@ class UploadScreen : Screen {
                                             withContext(Dispatchers.Main) {
                                                 isUploaded = true
                                                 progress = 1f
-                                                snackbarHostState.showSnackbar("Video uploaded successfully! 🎉")
-                                                navigator.pop() 
+                                                navigator.push(VideoPlayerScreen(streamtapeUrl))
                                             }
                                         } else {
                                             withContext(Dispatchers.Main) {
