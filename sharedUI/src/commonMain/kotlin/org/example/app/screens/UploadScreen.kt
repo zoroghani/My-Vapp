@@ -210,9 +210,6 @@ class UploadScreen : Screen {
                 // 5️⃣ Upload Button
                 Button(
                     onClick = {
-                        // ✅ 1. یہ لائن onClick کے بالکل شروع میں ہونی چاہیے
-                        if (isUploading) return@onClick 
-
                         scope.launch {
                             isUploading = true
                             progress = 0f
