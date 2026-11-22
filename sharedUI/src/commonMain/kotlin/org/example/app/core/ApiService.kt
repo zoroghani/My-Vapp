@@ -16,6 +16,31 @@ import kotlinx.serialization.json.Json
 // ==========================================
 
 @Serializable
+data class StreamtapeInfoResponse(
+    val status: Int,
+    val msg: String,
+    val result: Map<String, StreamtapeFileInfo>? = null
+)
+
+@Serializable
+data class StreamtapeFileInfo(
+    val id: String? = null,
+    val name: String? = null,
+    val size: Long? = null,
+    val type: String? = null,
+    val converted: Boolean? = null,
+    val status: Int? = null,
+    val link: String? = null
+)
+
+@Serializable
+data class StreamtapeThumbResponse(
+    val status: Int,
+    val msg: String,
+    val result: String? = null
+)
+
+@Serializable
 data class LoginRequest(val email: String, val password: String)
 
 @Serializable
