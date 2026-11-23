@@ -1,36 +1,29 @@
 package org.example.app.core.platform
 
+import android.annotation.SuppressLint
+import android.webkit.WebView
+import android.webkit.WebViewClient
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.viewinterop.AndroidView
-import androidx.media3.common.MediaItem
-import androidx.media3.exoplayer.ExoPlayer
-import androidx.media3.ui.PlayerView
 
+@SuppressLint("SetJavaScriptEnabled")
 @Composable
-actual fun NativeVideoPlayer(videoUrl: String, modifier: Modifier) {
-    val context = androidx.compose.ui.platform.LocalContext.current
-    val exoPlayer = remember {
-        ExoPlayer.Builder(context).build().apply {
-            setMediaItem(MediaItem.fromUri(videoUrl))
-            prepare()
-            playWhenReady = true
-        }
-    }
-    
-    DisposableEffect(Unit) {
-        onDispose { exoPlayer.release() }
-    }
+actual fun NativeVideoPlayer(videoUrl: String, modifier: Modifier = Modifier) {
+    val embedUrl = videoUrl.replace("/v/", "/e/") // /v/ کو /e/ میں بدلیں
 
-    AndroidView(
-        factory = { ctx ->
-            PlayerView(ctx).apply {
-                player = exoPlayer
-                useController = true
+    AndroidView(modifier = modifier, factory = { context ->
+        WebView(context).apply {
+            settings.apply {
+                javaScriptEnabled = true
+                mediaPlaybackRequiresUserGesture = false
+                useWideViewPort = true
+                loadWithOverviewMode = true
             }
-        },
-        modifier = modifier
-    )
+            webViewClient = object : WebViewClient() {
+                override fun shouldOverrideUrlLoading(view: WebView?, url: String?): Boolean = false
+            }
+            loadUrl(embedUrl)
+        }
+    })
 }
