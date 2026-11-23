@@ -232,24 +232,38 @@ object ApiService {
     }
 
     // 👇 یہ فنکشن File ID لے کر اشتہارات سے پاک Raw MP4 لنک واپس کرے گا
-    suspend fun getRawVideoUrl(fileId: String): String {
-        // 1. ٹکٹ حاصل کریں
-        val ticketResponse = client.get("https://api.streamtape.com/file/dlticket?file=$fileId&login=$STREAMTAPE_LOGIN&key=$STREAMTAPE_KEY")
-            .body<StreamtapeTicketResponse>()
+        suspend fun getRawVideoUrl(fileId: String): String {
+        var lastError: String? = null
+        
+        // 3 بار کوشش کریں
+        for (attempt in 1..3) {
+            println("🔄 Attempt $attempt to get raw URL...")
             
-        if (ticketResponse.status != 200 || ticketResponse.result?.ticket == null) {
-            throw Exception("Failed to get download ticket: ${ticketResponse.msg}")
-        }
-
-        // 2. ٹکٹ استعمال کر کے Raw لنک حاصل کریں
-        val dlResponse = client.get("https://api.streamtape.com/file/dl?file=$fileId&ticket=${ticketResponse.result.ticket}")
-            .body<StreamtapeDlResponse>()
+            // 1. ٹکٹ حاصل کریں
+            val ticketResponse = client.get("https://api.streamtape.com/file/dlticket?file=$fileId&login=$STREAMTAPE_LOGIN&key=$STREAMTAPE_KEY")
+                .body<StreamtapeTicketResponse>()
             
-        if (dlResponse.status != 200 || dlResponse.result?.url == null) {
-            throw Exception("Failed to get raw video URL: ${dlResponse.msg}")
+            if (ticketResponse.status == 200 && ticketResponse.result?.ticket != null) {
+                // 2. ٹکٹ استعمال کر کے Raw لنک حاصل کریں
+                val dlResponse = client.get("https://api.streamtape.com/file/dl?file=$fileId&ticket=${ticketResponse.result.ticket}")
+                    .body<StreamtapeDlResponse>()
+                
+                if (dlResponse.status == 200 && dlResponse.result?.url != null) {
+                    println("✅ Raw MP4 URL obtained on attempt $attempt")
+                    return dlResponse.result.url
+                }
+                
+                lastError = dlResponse.msg
+            } else {
+                lastError = ticketResponse.msg
+            }
+            
+            // اگر "wait" ایرر آیا، تو بتایا گیا وقت انتظار کریں
+            println("⏳ Waiting 5 seconds before retry...")
+            kotlinx.coroutines.delay(5000)
         }
-
-        return dlResponse.result.url // صاف MP4 لنک
+        
+        throw Exception("Failed to get raw video URL after 3 attempts: $lastError")
     }
 
     // 👇 ڈیٹا بیس میں ویڈیو محفوظ کرنے کا فنکشن (Serialization Crash فری)
