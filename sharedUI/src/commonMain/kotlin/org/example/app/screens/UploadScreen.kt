@@ -208,7 +208,7 @@ class UploadScreen : Screen {
                 Spacer(modifier = Modifier.height(24.dp))
 
                 // 5️⃣ Upload Button
-                Button(
+                                Button(
                     onClick = {
                         scope.launch {
                             isUploading = true
@@ -223,20 +223,19 @@ class UploadScreen : Screen {
                                         throw Exception("File bytes are empty")
                                     }
 
-                                    // 1. Streamtape پر اپ لوڈ کریں
+                                    // 1. Streamtape پر اپ لوڈ
                                     val uploadResponse = ApiService.uploadVideoToStreamtape(bytes, name)
 
                                     if (uploadResponse.status == 200 && uploadResponse.result?.url != null) {
-                                        // 👇 یہاں سے fileId نکالنا اور getRawVideoUrl کال کرنا ہٹا دیا گیا ہے
                                         val streamtapeUrl = uploadResponse.result.url!! // یہ /v/ والا لنک ہے
 
-                                        // 2. سیدھا ڈیٹا بیس میں سیو کریں
+                                        // 2. ڈیٹا بیس میں سیو کریں
                                         val saveResponse = ApiService.saveVideoMetadata(
                                             title = title,
                                             description = description,
                                             categoryId = 1,
                                             uploaderId = 1,
-                                            videoUrl = streamtapeUrl, // 👈 ڈیٹا بیس میں /v/ والا لنک جائے گا
+                                            videoUrl = streamtapeUrl,
                                             thumbnailUrl = uploadResponse.result.thumbnail ?: "",
                                             duration = "00:00"
                                         )
@@ -245,7 +244,6 @@ class UploadScreen : Screen {
                                             withContext(Dispatchers.Main) {
                                                 isUploaded = true
                                                 progress = 1f
-                                                // 👇 پلئر کو بھی وہی /v/ والا لنک بھیج دیں
                                                 navigator.push(VideoPlayerScreen(videoUrl = streamtapeUrl, videoTitle = title))
                                             }
                                         } else {
@@ -253,17 +251,13 @@ class UploadScreen : Screen {
                                                 snackbarHostState.showSnackbar("DB Save Failed: ${saveResponse.message}")
                                             }
                                         }
-                                    } else {
-                                        withContext(Dispatchers.Main) {
-                                            snackbarHostState.showSnackbar("Streamtape upload failed: ${uploadResponse.msg}")
-                                        }
                                     }
                                 }
                             } catch (e: Throwable) {
-                                println("❌ CRASH PREVENTED! Error: ${e.message}")
+                                println("❌ ERROR: ${e.message}")
                                 e.printStackTrace()
                                 withContext(Dispatchers.Main) {
-                                    snackbarHostState.showSnackbar("Upload Error: ${e.message ?: e.toString()}")
+                                    snackbarHostState.showSnackbar("Upload Error: ${e.message ?: "Unknown error"}")
                                 }
                             } finally {
                                 withContext(Dispatchers.Main) {
