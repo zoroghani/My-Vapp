@@ -223,25 +223,20 @@ class UploadScreen : Screen {
                                         throw Exception("File bytes are empty")
                                     }
 
-                                    // 1. Streamtape پر اپ لوڈ
+                                    // 1. Streamtape پر اپ لوڈ کریں
                                     val uploadResponse = ApiService.uploadVideoToStreamtape(bytes, name)
 
                                     if (uploadResponse.status == 200 && uploadResponse.result?.url != null) {
-                                        val streamtapeUrl = uploadResponse.result.url!!
+                                        // 👇 یہاں سے fileId نکالنا اور getRawVideoUrl کال کرنا ہٹا دیا گیا ہے
+                                        val streamtapeUrl = uploadResponse.result.url!! // یہ /v/ والا لنک ہے
 
-                                        // URL میں سے File ID نکالیں (مثال: https://streamtape.com/v/XYZ123/name.mp4 -> XYZ123)
-                                        val fileId = streamtapeUrl.substringAfter("/v/").substringBefore("/")
-
-                                        // Raw MP4 لنک حاصل کریں (بغیر اشتہارات کے)
-                                        val rawMp4Url = ApiService.getRawVideoUrl(fileId)
-
-                                        // اپنے PHP ڈیٹا بیس میں Raw لنک سیو کریں
+                                        // 2. سیدھا ڈیٹا بیس میں سیو کریں
                                         val saveResponse = ApiService.saveVideoMetadata(
                                             title = title,
                                             description = description,
                                             categoryId = 1,
                                             uploaderId = 1,
-                                            videoUrl = rawMp4Url,
+                                            videoUrl = streamtapeUrl, // 👈 ڈیٹا بیس میں /v/ والا لنک جائے گا
                                             thumbnailUrl = uploadResponse.result.thumbnail ?: "",
                                             duration = "00:00"
                                         )
@@ -250,7 +245,8 @@ class UploadScreen : Screen {
                                             withContext(Dispatchers.Main) {
                                                 isUploaded = true
                                                 progress = 1f
-                                                navigator.push(VideoPlayerScreen(videoUrl = rawMp4Url, videoTitle = title))
+                                                // 👇 پلئر کو بھی وہی /v/ والا لنک بھیج دیں
+                                                navigator.push(VideoPlayerScreen(videoUrl = streamtapeUrl, videoTitle = title))
                                             }
                                         } else {
                                             withContext(Dispatchers.Main) {
@@ -276,7 +272,7 @@ class UploadScreen : Screen {
                             }
                         }
                     },
-                    enabled = canUpload,
+                    enabled = canUpload && !isUploading,
                     modifier = Modifier.fillMaxWidth().height(52.dp),
                     shape = RoundedCornerShape(26.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF3066E8), contentColor = Color.White)
