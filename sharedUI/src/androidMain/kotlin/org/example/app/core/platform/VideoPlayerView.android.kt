@@ -9,8 +9,8 @@ import androidx.compose.ui.viewinterop.AndroidView
 
 @SuppressLint("SetJavaScriptEnabled")
 @Composable
-actual fun NativeVideoPlayer(videoUrl: String, modifier: Modifier = Modifier) {
-    val embedUrl = videoUrl.replace("/v/", "/e/") // /v/ کو /e/ میں بدلیں
+actual fun NativeVideoPlayer(videoUrl: String, modifier: Modifier) {
+    val embedUrl = videoUrl.replace("/v/", "/e/")
 
     AndroidView(modifier = modifier, factory = { context ->
         WebView(context).apply {
