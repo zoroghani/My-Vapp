@@ -259,7 +259,7 @@ class UploadScreen : Screen {
                                         }
                                     } else {
                                         withContext(Dispatchers.Main) {
-                                            snackbarHostState.showSnackbar("Streamtape upload failed: ${uploadResponse.message}")
+                                            snackbarHostState.showSnackbar("Streamtape upload failed: ${uploadResponse.msg}")
                                         }
                                     }
                                 }
