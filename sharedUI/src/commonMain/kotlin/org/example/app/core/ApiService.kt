@@ -10,9 +10,10 @@ import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonElement
 
 // --- ڈیٹا کلاسز (صرف اتنی ہی درکار ہیں) ---
-@Serializable data class ApiResponse(val status: String, val message: String, val data: Any? = null)
+@Serializable data class ApiResponse(val status: String, val message: String, val data: JsonElement? = null)
 @Serializable data class StreamtapeUploadUrlResponse(val status: Int, val msg: String, val result: StreamtapeUploadResult?)
 @Serializable data class StreamtapeUploadResult(val url: String, val valid_until: String)
 @Serializable data class StreamtapeInfoResponse(val status: Int, val msg: String, val result: Map<String, StreamtapeFileInfo>?)
@@ -23,9 +24,9 @@ import kotlinx.serialization.json.Json
 @Serializable data class SaveVideoRequest(val title: String, val description: String, val categoryId: Int, val uploaderId: Int, val videoUrl: String, val thumbnailUrl: String, val duration: String)
 
 object ApiService {
-    private const val BASE_URL = "http://testooo.cu.ma/php-admin-panel-master/source-code/admin/api/" 
-    private const val STREAMTAPE_LOGIN = "YOUR_API_LOGIN_HERE" // اپنی Login یہاں ڈالیں
-    private const val STREAMTAPE_KEY = "YOUR_API_KEY_HERE"     // اپنی Key یہاں ڈالیں
+    private const val BASE_URL = "https://testooo.cu.ma/admin/api/" 
+    private const val STREAMTAPE_LOGIN = "04d3d9a57b69adbdb681" // اپنی Login یہاں ڈالیں
+    private const val STREAMTAPE_KEY = "o9DarRp488codeb"     // اپنی Key یہاں ڈالیں
 
     val client by lazy {
         HttpClient {
