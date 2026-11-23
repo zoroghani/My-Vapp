@@ -38,6 +38,47 @@ private val videoCategories = listOf(
 
 class UploadScreen : Screen {
 
+    <ernie:tool_call>
+<invoke name="create_file"><parameter name="content">package org.example.app.screens
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import org.example.app.screens.VideoPlayerScreen
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import cafe.adriel.voyager.core.screen.Screen
+import cafe.adriel.voyager.navigator.LocalNavigator
+import cafe.adriel.voyager.navigator.currentOrThrow
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import org.example.app.core.ApiService
+import org.example.app.core.platform.rememberVideoPicker
+
+private val videoCategories = listOf(
+    "None", "Autos & Vehicles", "Comedy", "Education", "Entertainment",
+    "Film & Animation", "Fashion & Beauty", "Gaming", "Music",
+    "News & Politics", "Nonprofits & Activism", "People & Blogs",
+    "Pets & Animals", "Science & Technology", "Sports", "Travel & Events"
+)
+
+class UploadScreen : Screen {
+
     @Composable
     override fun Content() {
         val navigator = LocalNavigator.currentOrThrow
@@ -213,52 +254,53 @@ class UploadScreen : Screen {
                         scope.launch {
                             isUploading = true
                             progress = 0f
-                            
+
                             try {
                                 withContext(Dispatchers.IO) {
                                     val bytes = videoBytes
                                     val name = videoFileName ?: "video.mp4"
-                                    
+
                                     if (bytes == null || bytes.isEmpty()) {
                                         throw Exception("File bytes are empty")
                                     }
 
+                                    // 1. Streamtape پر اپ لوڈ
                                     val uploadResponse = ApiService.uploadVideoToStreamtape(bytes, name)
-                                    
-                                    if (uploadResponse.status == 200 && uploadResponse.result?.url != null) {
-                                        val streamtapeUrl = uploadResponse.result.url!!
-                                        
-                                        val uploadResponse = ApiService.uploadVideoToStreamtape(bytes, name)
 
                                     if (uploadResponse.status == 200 && uploadResponse.result?.url != null) {
-                                    // URL میں سے File ID نکالیں (مثال: https://streamtape.com/v/XYZ123/name.mp4 -> XYZ123)
-                                        val fileId = uploadResponse.result.url.substringAfter("/v/").substringBefore("/")
-    
-                                    // 👇 Raw MP4 لنک حاصل کریں (بغیر اشتہارات کے)
+                                        val streamtapeUrl = uploadResponse.result.url!!
+
+                                        // URL میں سے File ID نکالیں (مثال: https://streamtape.com/v/XYZ123/name.mp4 -> XYZ123)
+                                        val fileId = streamtapeUrl.substringAfter("/v/").substringBefore("/")
+
+                                        // Raw MP4 لنک حاصل کریں (بغیر اشتہارات کے)
                                         val rawMp4Url = ApiService.getRawVideoUrl(fileId)
-    
-        // اپنے PHP ڈیٹا بیس میں Raw لنک سیو کریں
+
+                                        // اپنے PHP ڈیٹا بیس میں Raw لنک سیو کریں
                                         val saveResponse = ApiService.saveVideoMetadata(
-                                              title = title,
-                                              description = description,
-                                              categoryId = 1,
-                                              uploaderId = 1,
-                                              videoUrl = rawMp4Url, // 👈 یہاں Raw MP4 لنک جا رہا ہے!
-                                              thumbnailUrl = uploadResponse.result.thumbnail ?: "",
-                                              duration = "00:00"
-                                         )
+                                            title = title,
+                                            description = description,
+                                            categoryId = 1,
+                                            uploaderId = 1,
+                                            videoUrl = rawMp4Url,
+                                            thumbnailUrl = uploadResponse.result.thumbnail ?: "",
+                                            duration = "00:00"
+                                        )
 
                                         if (saveResponse.status == "success") {
                                             withContext(Dispatchers.Main) {
                                                 isUploaded = true
                                                 progress = 1f
-                                                // ✅ 2. یہاں videoTitle بھی پاس کریں (title variable کا استعمال کریں)
-                                                navigator.push(VideoPlayerScreen(videoUrl = streamtapeUrl, videoTitle = title))
+                                                navigator.push(VideoPlayerScreen(videoUrl = rawMp4Url, videoTitle = title))
                                             }
                                         } else {
                                             withContext(Dispatchers.Main) {
                                                 snackbarHostState.showSnackbar("DB Save Failed: ${saveResponse.message}")
                                             }
+                                        }
+                                    } else {
+                                        withContext(Dispatchers.Main) {
+                                            snackbarHostState.showSnackbar("Streamtape upload failed: ${uploadResponse.message}")
                                         }
                                     }
                                 }
@@ -280,7 +322,6 @@ class UploadScreen : Screen {
                     shape = RoundedCornerShape(26.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF3066E8), contentColor = Color.White)
                 ) {
-                    // ✅ 3. یہاں صرف UI دکھانی ہے، return@onClick یہاں سے ہٹا دیں
                     if (isUploading) {
                         CircularProgressIndicator(modifier = Modifier.size(24.dp), color = Color.White, strokeWidth = 3.dp)
                         Spacer(modifier = Modifier.width(8.dp))
