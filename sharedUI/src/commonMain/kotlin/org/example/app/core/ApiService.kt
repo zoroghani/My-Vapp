@@ -139,7 +139,7 @@ data class SaveVideoRequest(
 object ApiService {
 
     // ⚠️ انتہائی اہم: یہاں اپنا اصل PHP API URL لکھیں
-    private const val BASE_URL = "http://testooo.cu.ma/php-admin-panel-master/source-code/admin/api/" 
+    private const val BASE_URL = "https://testooo.cu.ma/admin/api/" 
     
     // ⚠️ انتہائی اہم: یہاں اپنی Streamtape کی اصل Login اور Key لکھیں
     private const val STREAMTAPE_LOGIN = "04d3d9a57b69adbdb681"
