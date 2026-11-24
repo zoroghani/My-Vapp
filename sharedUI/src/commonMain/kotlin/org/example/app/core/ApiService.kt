@@ -49,10 +49,12 @@ data class SaveVideoRequest(
 )
 
 object ApiService {
-    // ⚠️ انتہائی اہم: یہاں اپنی اصل ویلیوز ڈالیں، ورنہ "Failed to get upload URL" آئے گا
+    // ✅ درست BASE_URL
     private const val BASE_URL = "https://testooo.cu.ma/admin/api/" 
-    private const val STREAMTAPE_LOGIN = "04d3d9a57b69adbdb681" // اپنی اصل Login یہاں ڈالیں
-    private const val STREAMTAPE_KEY = "o9DarRp488uJykb"     // اپنی اصل Key یہاں ڈالیں
+    
+    // ✅ آپ کی اصل Credentials (میں نے خود ڈال دی ہیں)
+    private const val STREAMTAPE_LOGIN = "04d3d9a57b69adbdb681" 
+    private const val STREAMTAPE_KEY = "o9DarRp488uJykb"     
 
     val client by lazy {
         HttpClient {
@@ -68,18 +70,16 @@ object ApiService {
     }
 
     suspend fun uploadVideoToStreamtape(fileBytes: ByteArray, fileName: String): StreamtapeFinalResponse {
-        // مرحلہ 1: اپلوڈ URL حاصل کریں
         val urlResponse = client.get("https://api.streamtape.com/file/ul?login=$STREAMTAPE_LOGIN&key=$STREAMTAPE_KEY")
             .body<StreamtapeUploadUrlResponse>()
             
         if (urlResponse.status != 200 || urlResponse.result?.url == null) {
-            throw Exception("Failed to get upload URL: ${urlResponse.msg}") // اصل ایرر میسج یہاں شامل ہے
+            throw Exception("Failed to get upload URL: ${urlResponse.msg}")
         }
 
         val uploadUrl = urlResponse.result.url
         val fileId = uploadUrl.substringAfterLast("/")
 
-        // مرحلہ 2: فائل اپلوڈ کریں
         client.post(uploadUrl) {
             setBody(MultiPartFormDataContent(formData {
                 append("file1", fileBytes, Headers.build {
@@ -89,14 +89,12 @@ object ApiService {
             }))
         }
 
-        // مرحلہ 3: ویڈیو لنک حاصل کریں
         val infoResponse = client.get("https://api.streamtape.com/file/info?file=$fileId&login=$STREAMTAPE_LOGIN&key=$STREAMTAPE_KEY")
             .body<StreamtapeInfoResponse>()
             
         val videoInfo = infoResponse.result?.get(fileId)
         val watchUrl = videoInfo?.link ?: "https://streamtape.com/v/$fileId"
 
-        // مرحلہ 4: تھمب نیل حاصل کریں
         val thumbResponse = client.get("https://api.streamtape.com/file/getsplash?file=$fileId&login=$STREAMTAPE_LOGIN&key=$STREAMTAPE_KEY")
             .body<StreamtapeThumbResponse>()
 
@@ -111,13 +109,20 @@ object ApiService {
         )
     }
 
+    // ✅ ڈیبگنگ کے ساتھ محفوظ ورژن
     suspend fun saveVideoMetadata(
         title: String, description: String, categoryId: Int, uploaderId: Int, 
         videoUrl: String, thumbnailUrl: String, duration: String
     ): ApiResponse {
-        return client.post("${BASE_URL}save_video.php") {
+        val response = client.post("${BASE_URL}save_video.php") {
             contentType(ContentType.Application.Json)
             setBody(SaveVideoRequest(title, description, categoryId, uploaderId, videoUrl, thumbnailUrl, duration))
-        }.body()
+        }
+        
+        // 👇 یہ لائن Logcat میں سرور کا بالکل اصل جواب دکھائے گی
+        val rawText = response.bodyAsText()
+        println("🔥 RAW PHP RESPONSE: $rawText") 
+        
+        return Json.decodeFromString<ApiResponse>(rawText)
     }
 }
