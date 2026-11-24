@@ -6,6 +6,7 @@ import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.request.*
 import io.ktor.client.request.forms.*
+import io.ktor.client.statement.bodyAsText // 👈 یہ لائن شامل کی گئی ہے (یہی ایرر ٹھیک کرے گی)
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.Serializable
@@ -49,10 +50,7 @@ data class SaveVideoRequest(
 )
 
 object ApiService {
-    // ✅ درست BASE_URL
     private const val BASE_URL = "https://testooo.cu.ma/admin/api/" 
-    
-    // ✅ آپ کی اصل Credentials (میں نے خود ڈال دی ہیں)
     private const val STREAMTAPE_LOGIN = "04d3d9a57b69adbdb681" 
     private const val STREAMTAPE_KEY = "o9DarRp488uJykb"     
 
@@ -109,7 +107,6 @@ object ApiService {
         )
     }
 
-    // ✅ ڈیبگنگ کے ساتھ محفوظ ورژن
     suspend fun saveVideoMetadata(
         title: String, description: String, categoryId: Int, uploaderId: Int, 
         videoUrl: String, thumbnailUrl: String, duration: String
@@ -119,7 +116,7 @@ object ApiService {
             setBody(SaveVideoRequest(title, description, categoryId, uploaderId, videoUrl, thumbnailUrl, duration))
         }
         
-        // 👇 یہ لائن Logcat میں سرور کا بالکل اصل جواب دکھائے گی
+        // 👇 اب یہ لائن بغیر کسی ایرر کے کام کرے گی
         val rawText = response.bodyAsText()
         println("🔥 RAW PHP RESPONSE: $rawText") 
         
