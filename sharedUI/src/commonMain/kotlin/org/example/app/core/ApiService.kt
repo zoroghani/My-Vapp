@@ -4,6 +4,7 @@ import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.plugins.HttpTimeout
+import io.ktor.client.plugins.defaultRequest
 import io.ktor.client.request.*
 import io.ktor.client.request.forms.*
 import io.ktor.client.statement.bodyAsText
@@ -51,8 +52,6 @@ data class SaveVideoRequest(
 
 object ApiService {
     private const val BASE_URL = "https://testooo.cu.ma/admin/api/" 
-    private const val STREAMTAPE_LOGIN = "04d3d9a57b69adbdb681" 
-    private const val STREAMTAPE_KEY = "o9DarRp488uJykb"     
 
     val client by lazy {
         HttpClient {
@@ -63,23 +62,32 @@ object ApiService {
                 requestTimeoutMillis = 600000
                 socketTimeoutMillis = 600000 
             }
+            // 👇 Imunify360 کو bypass کرنے کے لیے Browser جیسا User-Agent
+            defaultRequest {
+                header(HttpHeaders.UserAgent, "Mozilla/5.0 (Linux; Android 13; SM-A515F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36")
+                header(HttpHeaders.Accept, "application/json")
+            }
             expectSuccess = false
         }
     }
 
+    // نیا فنکشن: ہمارے PHP سرور سے Upload URL مانگیں
+    suspend fun getStreamtapeUploadUrl(): StreamtapeUploadUrlResponse {
+        return client.post("${BASE_URL}get_upload_url.php").body()
+    }
+
     suspend fun uploadVideoToStreamtape(fileBytes: ByteArray, fileName: String): StreamtapeFinalResponse {
-        // 1. اپلوڈ URL حاصل کریں
-        val urlResponse = client.get("https://api.streamtape.com/file/ul?login=$STREAMTAPE_LOGIN&key=$STREAMTAPE_KEY")
-            .body<StreamtapeUploadUrlResponse>()
+        // 1. ہمارے سرور سے Upload URL حاصل کریں
+        val urlResponse = getStreamtapeUploadUrl()
             
         if (urlResponse.status != 200 || urlResponse.result?.url == null) {
-            throw Exception("Upload URL Failed: ${urlResponse.msg}")
+            throw Exception("Failed to get upload URL: ${urlResponse.msg}")
         }
 
         val uploadUrl = urlResponse.result.url
         val fileId = uploadUrl.substringAfterLast("/")
 
-        // 2. فائل اپلوڈ کریں
+        // 2. ویڈیو براہِ راست Streamtape پر اپلوڈ کریں
         val uploadResp = client.post(uploadUrl) {
             setBody(MultiPartFormDataContent(formData {
                 append("file1", fileBytes, Headers.build {
@@ -89,18 +97,16 @@ object ApiService {
             }))
         }
         
-        // ڈیبگنگ: اپلوڈ کا اصل جواب دیکھنے کے لیے
         println("🔥 UPLOAD RESPONSE BODY: ${uploadResp.bodyAsText()}")
 
-        // 3. ویڈیو لنک حاصل کریں
-        val infoResponse = client.get("https://api.streamtape.com/file/info?file=$fileId&login=$STREAMTAPE_LOGIN&key=$STREAMTAPE_KEY")
+        // 3. ویڈیو کی معلومات اور تھمب نیل حاصل کریں (یہ Streamtape API سے براہِ راست آئیں گی)
+        val infoResponse = client.get("https://api.streamtape.com/file/info?file=$fileId&login=y7bhafa3bxfxudzk&key=dq6hzjewe27bmwdn")
             .body<StreamtapeInfoResponse>()
             
         val videoInfo = infoResponse.result?.get(fileId)
         val watchUrl = videoInfo?.link ?: "https://streamtape.com/v/$fileId"
 
-        // 4. تھمب نیل حاصل کریں
-        val thumbResponse = client.get("https://api.streamtape.com/file/getsplash?file=$fileId&login=$STREAMTAPE_LOGIN&key=$STREAMTAPE_KEY")
+        val thumbResponse = client.get("https://api.streamtape.com/file/getsplash?file=$fileId&login=y7bhafa3bxfxudzk&key=dq6hzjewe27bmwdn")
             .body<StreamtapeThumbResponse>()
 
         return StreamtapeFinalResponse(
@@ -123,15 +129,12 @@ object ApiService {
             setBody(SaveVideoRequest(title, description, categoryId, uploaderId, videoUrl, thumbnailUrl, duration))
         }
         
-        // سرور کا بالکل خام (Raw) جواب حاصل کریں
         val rawText = response.bodyAsText()
         println("🔥 RAW PHP RESPONSE: $rawText") 
         
         return try {
-            // اگر جواب درست JSON ہے تو پارس کریں
             Json.decodeFromString<ApiResponse>(rawText)
         } catch (e: Exception) {
-            // اگر JSON نہیں ہے (مثلاً HTML ایرر)، تو وہی خام ٹیکسٹ میسج میں واپس کر دیں تاکہ UI پر نظر آئے
             ApiResponse(status = "error", message = "Server returned invalid JSON: $rawText")
         }
     }
