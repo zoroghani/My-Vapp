@@ -13,6 +13,7 @@ import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
+import io.ktor.client.request.parameter
 
 // --- ڈیٹا کلاسز ---
 @Serializable
