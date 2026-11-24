@@ -120,22 +120,26 @@ object ApiService {
         )
     }
 
-    suspend fun saveVideoMetadata(
-        title: String, description: String, categoryId: Int, uploaderId: Int, 
+        suspend fun saveVideoMetadata(
+        title: String, description: String, categoryId: Int, uploaderId: Int,
         videoUrl: String, thumbnailUrl: String, duration: String
     ): ApiResponse {
-        val response = client.post("${BASE_URL}save_video.php") {
-            contentType(ContentType.Application.Json)
-            setBody(SaveVideoRequest(title, description, categoryId, uploaderId, videoUrl, thumbnailUrl, duration))
+        // GET میں query params بھیجیں (Imunify360 GET pass کرتا ہے)
+        val response = client.get("${BASE_URL}save_video.php") {
+            parameter("title", title)
+            parameter("description", description)
+            parameter("categoryId", categoryId)
+            parameter("uploaderId", uploaderId)
+            parameter("videoUrl", videoUrl)
+            parameter("thumbnailUrl", thumbnailUrl)
+            parameter("duration", duration)
         }
-        
         val rawText = response.bodyAsText()
-        println("🔥 RAW PHP RESPONSE: $rawText") 
-        
+        println("🔥 SAVE_DB_RAW: $rawText")
         return try {
             Json.decodeFromString<ApiResponse>(rawText)
         } catch (e: Exception) {
-            ApiResponse(status = "error", message = "Server returned invalid JSON: $rawText")
+            ApiResponse(status = "error", message = "Server Error: $rawText")
         }
     }
 }
