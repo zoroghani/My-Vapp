@@ -6,7 +6,7 @@ import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.request.*
 import io.ktor.client.request.forms.*
-import io.ktor.client.statement.bodyAsText // 👈 یہ لائن شامل کی گئی ہے (یہی ایرر ٹھیک کرے گی)
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.Serializable
@@ -68,17 +68,19 @@ object ApiService {
     }
 
     suspend fun uploadVideoToStreamtape(fileBytes: ByteArray, fileName: String): StreamtapeFinalResponse {
+        // 1. اپلوڈ URL حاصل کریں
         val urlResponse = client.get("https://api.streamtape.com/file/ul?login=$STREAMTAPE_LOGIN&key=$STREAMTAPE_KEY")
             .body<StreamtapeUploadUrlResponse>()
             
         if (urlResponse.status != 200 || urlResponse.result?.url == null) {
-            throw Exception("Failed to get upload URL: ${urlResponse.msg}")
+            throw Exception("Upload URL Failed: ${urlResponse.msg}")
         }
 
         val uploadUrl = urlResponse.result.url
         val fileId = uploadUrl.substringAfterLast("/")
 
-        client.post(uploadUrl) {
+        // 2. فائل اپلوڈ کریں
+        val uploadResp = client.post(uploadUrl) {
             setBody(MultiPartFormDataContent(formData {
                 append("file1", fileBytes, Headers.build {
                     append(HttpHeaders.ContentType, "video/mp4")
@@ -86,13 +88,18 @@ object ApiService {
                 })
             }))
         }
+        
+        // ڈیبگنگ: اپلوڈ کا اصل جواب دیکھنے کے لیے
+        println("🔥 UPLOAD RESPONSE BODY: ${uploadResp.bodyAsText()}")
 
+        // 3. ویڈیو لنک حاصل کریں
         val infoResponse = client.get("https://api.streamtape.com/file/info?file=$fileId&login=$STREAMTAPE_LOGIN&key=$STREAMTAPE_KEY")
             .body<StreamtapeInfoResponse>()
             
         val videoInfo = infoResponse.result?.get(fileId)
         val watchUrl = videoInfo?.link ?: "https://streamtape.com/v/$fileId"
 
+        // 4. تھمب نیل حاصل کریں
         val thumbResponse = client.get("https://api.streamtape.com/file/getsplash?file=$fileId&login=$STREAMTAPE_LOGIN&key=$STREAMTAPE_KEY")
             .body<StreamtapeThumbResponse>()
 
@@ -116,10 +123,16 @@ object ApiService {
             setBody(SaveVideoRequest(title, description, categoryId, uploaderId, videoUrl, thumbnailUrl, duration))
         }
         
-        // 👇 اب یہ لائن بغیر کسی ایرر کے کام کرے گی
+        // سرور کا بالکل خام (Raw) جواب حاصل کریں
         val rawText = response.bodyAsText()
         println("🔥 RAW PHP RESPONSE: $rawText") 
         
-        return Json.decodeFromString<ApiResponse>(rawText)
+        return try {
+            // اگر جواب درست JSON ہے تو پارس کریں
+            Json.decodeFromString<ApiResponse>(rawText)
+        } catch (e: Exception) {
+            // اگر JSON نہیں ہے (مثلاً HTML ایرر)، تو وہی خام ٹیکسٹ میسج میں واپس کر دیں تاکہ UI پر نظر آئے
+            ApiResponse(status = "error", message = "Server returned invalid JSON: $rawText")
+        }
     }
 }
