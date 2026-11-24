@@ -224,28 +224,27 @@ class UploadScreen : Screen {
                                     }
 
                                     // 1. Streamtape پر اپ لوڈ
-                                    val uploadResponse = ApiService.uploadVideoToStreamtape(bytes, name)
+                                    val uploadResponse = ApiService.uploadVideoViaPhpFtp(bytes, name)
 
-                                    if (uploadResponse.status == 200 && uploadResponse.result?.url != null) {
-                                        val streamtapeUrl = uploadResponse.result.url!! // یہ /v/ والا لنک ہے
-
-                                        // 2. ڈیٹا بیس میں سیو کریں
+                                    if (uploadResponse.status == "success") {
                                         val saveResponse = ApiService.saveVideoMetadata(
                                             title = title,
                                             description = description,
                                             categoryId = 1,
                                             uploaderId = 1,
-                                            videoUrl = streamtapeUrl,
-                                            thumbnailUrl = uploadResponse.result.thumbnail ?: "",
+                                            videoUrl = uploadResponse.videoUrl,
+                                            thumbnailUrl = uploadResponse.thumbnailUrl,
                                             duration = "00:00"
-                                        )
+                                       )
 
-                                        if (saveResponse.status == "success") {
-                                            withContext(Dispatchers.Main) {
-                                                isUploaded = true
-                                                progress = 1f
-                                                navigator.push(VideoPlayerScreen(videoUrl = streamtapeUrl, videoTitle = title))
-                                            }
+                                      if (saveResponse.status == "success") {
+                                          withContext(Dispatchers.Main) {
+                                              isUploaded = true
+                                              progress = 1f
+                                              navigator.push(VideoPlayerScreen(videoUrl = uploadResponse.videoUrl, videoTitle = title))
+                                         }
+                                    }
+                               }
                                         } else {
                                             withContext(Dispatchers.Main) {
                                                 snackbarHostState.showSnackbar("DB Save Failed: ${saveResponse.message}")
