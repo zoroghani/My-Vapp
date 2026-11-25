@@ -208,7 +208,7 @@ class UploadScreen : Screen {
                 Spacer(modifier = Modifier.height(24.dp))
 
                 // 5️⃣ Upload Button
-                                Button(
+                Button(
                     onClick = {
                         scope.launch {
                             isUploading = true
@@ -223,10 +223,11 @@ class UploadScreen : Screen {
                                         throw Exception("File bytes are empty")
                                     }
 
-                                    // 1. Streamtape پر اپ لوڈ
+                                    // 1. PHP FTP کے ذریعے اپلوڈ کریں
                                     val uploadResponse = ApiService.uploadVideoViaPhpFtp(bytes, name)
 
                                     if (uploadResponse.status == "success") {
+                                        // 2. ڈیٹا بیس میں سیو کریں
                                         val saveResponse = ApiService.saveVideoMetadata(
                                             title = title,
                                             description = description,
@@ -235,20 +236,22 @@ class UploadScreen : Screen {
                                             videoUrl = uploadResponse.videoUrl,
                                             thumbnailUrl = uploadResponse.thumbnailUrl,
                                             duration = "00:00"
-                                       )
+                                        )
 
-                                      if (saveResponse.status == "success") {
-                                          withContext(Dispatchers.Main) {
-                                              isUploaded = true
-                                              progress = 1f
-                                              navigator.push(VideoPlayerScreen(videoUrl = uploadResponse.videoUrl, videoTitle = title))
-                                         }
-                                    }
-                               }
+                                        if (saveResponse.status == "success") {
+                                            withContext(Dispatchers.Main) {
+                                                isUploaded = true
+                                                progress = 1f
+                                                navigator.push(VideoPlayerScreen(videoUrl = uploadResponse.videoUrl, videoTitle = title))
+                                            }
                                         } else {
                                             withContext(Dispatchers.Main) {
                                                 snackbarHostState.showSnackbar("DB Save Failed: ${saveResponse.message}")
                                             }
+                                        }
+                                    } else {
+                                        withContext(Dispatchers.Main) {
+                                            snackbarHostState.showSnackbar("Upload Failed: ${uploadResponse.message}")
                                         }
                                     }
                                 }
