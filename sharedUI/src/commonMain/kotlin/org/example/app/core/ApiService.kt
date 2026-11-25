@@ -51,7 +51,6 @@ object ApiService {
         }
     }
 
-    // ✅ نیا اور سادہ فنکشن: فائل PHP کو بھیجیں، PHP FTP کے ذریعے Streamtape پر ڈال دے گا
     suspend fun uploadVideoViaPhpFtp(fileBytes: ByteArray, fileName: String): FtpUploadResponse {
         val response = client.post("${BASE_URL}upload_video.php") {
             setBody(MultiPartFormDataContent(formData {
@@ -72,7 +71,6 @@ object ApiService {
         }
     }
 
-    // ✅ ڈیٹا بیس میں سیو کریں (GET طریقہ جو پہلے ٹیسٹ ہو چکا ہے)
     suspend fun saveVideoMetadata(
         title: String, description: String, categoryId: Int, uploaderId: Int,
         videoUrl: String, thumbnailUrl: String, duration: String
@@ -80,8 +78,8 @@ object ApiService {
         val response = client.get("${BASE_URL}save_video.php") {
             parameter("title", title)
             parameter("description", description)
-            "categoryId" to categoryId
-            "uploaderId" to uploaderId
+            parameter("categoryId", categoryId)     // ✅ درست syntax
+            parameter("uploaderId", uploaderId)     // ✅ درست syntax
             parameter("videoUrl", videoUrl)
             parameter("thumbnailUrl", thumbnailUrl)
             parameter("duration", duration)
@@ -90,8 +88,7 @@ object ApiService {
         println("🔥 SAVE_DB_RAW: $rawText")
         
         return try {
-            Json.decodeFromString<ApiResponse>(rawText)
-.
+            Json.decodeFromString<ApiResponse>(rawText) // ✅ stray dot ہٹا دیا گیا
         } catch (e: Exception) {
             ApiResponse(status = "error", message = "Server Error: $rawText")
         }
